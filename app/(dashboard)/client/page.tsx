@@ -1,0 +1,138 @@
+import { createClient } from '@/utils/supabase/server'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dumbbell, CalendarCheck, MessageSquare } from 'lucide-react'
+import Link from 'next/link'
+
+export default async function ClientDashboardPage() {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    return null
+  }
+
+  // Fetch upcoming workouts via workout_participants
+  const { data: upcomingWorkouts } = await supabase
+    .from('workouts')
+    .select(`
+      *,
+      profiles!workouts_trainer_id_fkey(full_name),
+      workout_participants!inner(status, client_id)
+    `)
+    .eq('workout_participants.client_id', user.id)
+    .in('workout_participants.status', ['accepted', 'pending'])
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at', { ascending: true })
+    .limit(5)
+
+  // Unread messages count (only in user's conversations)
+  const { data: myConversations } = await supabase
+    .from('conversation_participants')
+    .select('conversation_id')
+    .eq('profile_id', user.id)
+  
+  let unreadMessagesCount = 0
+  if (myConversations && myConversations.length > 0) {
+    const convIds = myConversations.map(c => c.conversation_id)
+    const { count } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .in('conversation_id', convIds)
+      .neq('sender_id', user.id)
+      .is('read_at', null)
+    unreadMessagesCount = count || 0
+  }
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto pb-24">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Kliens Áttekintés</h1>
+        <p className="text-zinc-400">Szia! Itt látod a következő fontos teendőket és az edzéseidet.</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Link href="/client/workouts">
+          <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-3xl hover:scale-[1.02] transition-transform cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Következő edzés</CardTitle>
+              <Dumbbell className="h-4 w-4 opacity-80" />
+            </CardHeader>
+            <CardContent>
+              <div className="break-words text-xl font-bold leading-tight sm:text-2xl">
+                {upcomingWorkouts && upcomingWorkouts.length > 0 
+                  ? new Date(upcomingWorkouts[0].starts_at).toLocaleDateString('hu-HU', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : 'Nincs betervezve'}
+              </div>
+              <p className="text-xs opacity-80 mt-1">
+                {upcomingWorkouts && upcomingWorkouts.length > 0 ? upcomingWorkouts[0].title : 'Kattints ide a foglaláshoz'}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/client/workouts">
+          <Card className="bg-card border-none rounded-3xl shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-400">Összes edzésed</CardTitle>
+              <CalendarCheck className="h-4 w-4 text-zinc-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="break-words text-2xl font-bold text-zinc-100">{upcomingWorkouts?.length || 0}</div>
+              <p className="text-xs text-zinc-500 mt-1">Közelgő edzés</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/chat">
+          <Card className="bg-card border-none rounded-3xl shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-400">Új üzenetek</CardTitle>
+              <MessageSquare className="h-4 w-4 text-zinc-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="break-words text-2xl font-bold text-red-400">{unreadMessagesCount}</div>
+              <p className="text-xs text-zinc-500 mt-1">Olvasatlan üzenet</p>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      <h2 className="text-xl font-bold tracking-tight mt-8 mb-4">Következő edzéseim</h2>
+      <div className="space-y-4">
+        {upcomingWorkouts && upcomingWorkouts.length > 0 ? (
+          upcomingWorkouts.map((workout: any) => {
+            const myStatus = workout.workout_participants?.[0]?.status || 'pending'
+            return (
+            <Card key={workout.id} className="bg-card border-none shadow-md rounded-3xl overflow-hidden">
+              <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mr-4 shrink-0">
+                  <Dumbbell className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="break-words font-semibold leading-tight text-zinc-100">{workout.title}</h3>
+                  <p className="break-words text-sm text-zinc-400">
+                    {new Date(workout.starts_at).toLocaleString('hu-HU', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • Edző: {workout.profiles?.full_name || 'Ismeretlen'}
+                  </p>
+                </div>
+                <div className={`inline-flex w-fit shrink-0 items-center rounded-full px-3 py-1 text-xs font-bold ${
+                  myStatus === 'accepted' ? 'bg-primary/20 text-primary' : 'bg-yellow-500/20 text-yellow-500'
+                }`}>
+                  {myStatus === 'accepted' ? 'Jóváhagyva' : 'Függőben'}
+                </div>
+              </CardContent>
+            </Card>
+            )
+          })
+        ) : (
+          <Card className="bg-card border-none border-dashed rounded-3xl">
+            <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+              <CalendarCheck className="h-12 w-12 text-zinc-600 mb-4" />
+              <p className="text-zinc-400">Nincs még betervezett edzésed. Menj az Edzések menübe és jelentkezz egyre!</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}
