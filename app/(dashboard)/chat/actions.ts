@@ -106,14 +106,14 @@ export async function sendMessage(conversationId: string, content: string) {
         type: 'chat_message'
       })
 
-      // 4. Send push notification
-      await sendPushNotification(participants.profile_id, {
+      // 4. Send push notification (non-blocking)
+      sendPushNotification(participants.profile_id, {
         title: 'Új üzeneted érkezett',
         body: `${senderProfile?.full_name || 'Valaki'} üzenetet küldött: "${content.trim().substring(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
         data: {
           url: '/chat'
         }
-      })
+      }).catch(err => console.error('Background push error:', err))
     }
   } catch (notifError) {
     console.error('Failed to send message notification:', notifError)

@@ -278,14 +278,14 @@ export async function updateParticipantStatus(participantId: string, status: 'ac
       type: 'workout_status'
     })
 
-    // Send push notification
-    await sendPushNotification(participant.client_id, {
+    // Send push notification (non-blocking)
+    sendPushNotification(participant.client_id, {
       title,
       body: message,
       data: {
         url: '/client/workouts'
       }
-    })
+    }).catch(err => console.error('Background push error:', err))
   }
 
   revalidatePath('/coach/workouts')

@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Fitness Coach",
   },
+};
+
+export const viewport = {
   themeColor: "#09090b",
 };
 
