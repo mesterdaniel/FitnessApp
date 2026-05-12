@@ -81,6 +81,7 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
       setSubscribing(true)
       const registration = await navigator.serviceWorker.ready
       const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      console.log('VAPID Public Key:', publicVapidKey)
 
       if (!publicVapidKey) {
         alert('VAPID kulcs hiányzik!')
@@ -95,7 +96,7 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
+        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
       })
 
       const res = await savePushSubscription(subscription.toJSON())
@@ -105,9 +106,9 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
       } else {
         alert('Hiba a mentéskor: ' + res.error)
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Push error:', err)
-      alert('Nem sikerült a feliratkozás. Próbáld újra!')
+      alert('Nem sikerült a feliratkozás: ' + (err.message || err.toString()))
     } finally {
       setSubscribing(false)
     }
