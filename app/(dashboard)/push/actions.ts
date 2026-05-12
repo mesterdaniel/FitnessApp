@@ -12,8 +12,9 @@ export async function savePushSubscription(subscription: any) {
     .from('push_subscriptions')
     .upsert({
       user_id: user.id,
+      endpoint: subscription.endpoint,
       subscription: subscription,
-    }, { onConflict: 'user_id,subscription' })
+    }, { onConflict: 'user_id,endpoint' })
 
   if (error) {
     console.error('Failed to save push subscription:', error)
