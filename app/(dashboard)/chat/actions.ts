@@ -106,8 +106,7 @@ export async function sendMessage(conversationId: string, content: string) {
         type: 'chat_message'
       })
 
-    // Send push notification in background
-    if (participants) {
+      // Send push notification in background
       const pushPayload = {
         title: 'Új üzeneted érkezett',
         body: `${senderProfile?.full_name || 'Valaki'} üzenetet küldött`,
