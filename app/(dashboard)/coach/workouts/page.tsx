@@ -40,7 +40,7 @@ export default async function CoachWorkoutsPage() {
   // Fetch coach's exercise library
   const { data: exercises } = await supabase
     .from('exercises')
-    .select('id, name, category, muscle_group')
+    .select('id, name, category, muscle_groups')
     .eq('trainer_id', user.id)
     .order('name', { ascending: true })
 

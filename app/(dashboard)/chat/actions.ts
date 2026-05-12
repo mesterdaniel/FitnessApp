@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendPushNotification } from '@/utils/push'
 
 export async function getOrCreateConversation(otherUserId: string) {
   const supabase = await createClient()
@@ -103,6 +104,15 @@ export async function sendMessage(conversationId: string, content: string) {
         title: 'Új üzeneted érkezett',
         message: `${senderProfile?.full_name || 'Valaki'} üzenetet küldött: "${content.trim().substring(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
         type: 'chat_message'
+      })
+
+      // 4. Send push notification
+      await sendPushNotification(participants.profile_id, {
+        title: 'Új üzeneted érkezett',
+        body: `${senderProfile?.full_name || 'Valaki'} üzenetet küldött: "${content.trim().substring(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
+        data: {
+          url: '/chat'
+        }
       })
     }
   } catch (notifError) {

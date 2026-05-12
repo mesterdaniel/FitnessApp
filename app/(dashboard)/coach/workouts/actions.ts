@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendPushNotification } from '@/utils/push'
 
 function parseWorkoutExercises(formData: FormData) {
   const ids = formData.getAll('workout_exercise_id').map(String)
@@ -275,6 +276,15 @@ export async function updateParticipantStatus(participantId: string, status: 'ac
       title,
       message,
       type: 'workout_status'
+    })
+
+    // Send push notification
+    await sendPushNotification(participant.client_id, {
+      title,
+      body: message,
+      data: {
+        url: '/client/workouts'
+      }
     })
   }
 
