@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { savePushSubscription } from "@/app/(dashboard)/push/actions"
+import { createClient } from "@/utils/supabase/client"
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -53,7 +54,18 @@ export function PwaRegistrar() {
       }
     }
 
-    registerPWA();
+    const supabase = createClient()
+    
+    // Listen for auth changes to re-subscribe if needed
+    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        registerPWA();
+      }
+    });
+
+    return () => {
+      authSubscription.unsubscribe();
+    }
   }, [])
 
   return null
