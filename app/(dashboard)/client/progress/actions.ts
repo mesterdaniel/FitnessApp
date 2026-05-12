@@ -31,6 +31,7 @@ export async function addExerciseLog(formData: FormData) {
   }
 
   revalidatePath('/client/progress')
+  revalidatePath('/coach', 'layout')
   return { success: true }
 }
 
@@ -84,5 +85,6 @@ export async function addWeightLog(formData: FormData) {
 
   revalidatePath('/client/progress')
   revalidatePath('/profile')
+  revalidatePath('/coach', 'layout')
   return { success: true }
 }

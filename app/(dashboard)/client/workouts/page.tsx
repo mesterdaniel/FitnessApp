@@ -56,7 +56,8 @@ export default async function ClientWorkoutsPage() {
     .select(`
       *,
       profiles!workouts_trainer_id_fkey(full_name),
-      workout_participants(id, status, client_id)
+      workout_participants(id, status, client_id),
+      workout_exercises(id, exercise_name, sets, reps, weight_target, order_index)
     `)
     .eq('status', 'available')
     .gte('starts_at', now)

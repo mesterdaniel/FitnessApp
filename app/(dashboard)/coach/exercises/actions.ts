@@ -12,7 +12,7 @@ export async function addExercise(formData: FormData) {
   const name = formData.get('name') as string
   const category = formData.get('category') as string
   const description = formData.get('description') as string
-  const muscle_group = formData.get('muscle_group') as string
+  const muscleGroups = formData.getAll('muscle_group') as string[]
 
   if (!name) {
     return { error: 'A gyakorlat neve kötelező!' }
@@ -25,7 +25,7 @@ export async function addExercise(formData: FormData) {
       name,
       category: category || null,
       description: description || null,
-      muscle_group: muscle_group || null,
+      muscle_groups: muscleGroups.length > 0 ? muscleGroups : null,
     })
 
   if (error) {
@@ -47,7 +47,7 @@ export async function updateExercise(formData: FormData) {
   const name = formData.get('name') as string
   const category = formData.get('category') as string
   const description = formData.get('description') as string
-  const muscle_group = formData.get('muscle_group') as string
+  const muscleGroups = formData.getAll('muscle_group') as string[]
 
   if (!id || !name) {
     return { error: 'Hiányzó adatok' }
@@ -59,7 +59,7 @@ export async function updateExercise(formData: FormData) {
       name,
       category: category || null,
       description: description || null,
-      muscle_group: muscle_group || null,
+      muscle_groups: muscleGroups.length > 0 ? muscleGroups : null,
     })
     .eq('id', id)
     .eq('trainer_id', user.id)

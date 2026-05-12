@@ -9,12 +9,20 @@ function parseWorkoutExercises(formData: FormData) {
   const setsValues = formData.getAll('workout_exercise_sets').map(String)
   const repsValues = formData.getAll('workout_exercise_reps').map(String)
   const weightValues = formData.getAll('workout_exercise_weight_target').map(String)
+  const rpeValues = formData.getAll('workout_exercise_rpe').map(String)
+  const rirValues = formData.getAll('workout_exercise_rir').map(String)
+  const restValues = formData.getAll('workout_exercise_rest_seconds').map(String)
+  const supersetValues = formData.getAll('workout_exercise_is_superset').map(String)
 
   return names
     .map((name, index) => {
       const sets = parseInt(setsValues[index] || '', 10)
       const reps = parseInt(repsValues[index] || '', 10)
       const weightTarget = parseFloat(weightValues[index] || '')
+      const rpe = parseInt(rpeValues[index] || '', 10)
+      const rir = parseInt(rirValues[index] || '', 10)
+      const rest_seconds = parseInt(restValues[index] || '', 10)
+      const is_superset = supersetValues[index] === 'true'
 
       return {
         id: ids[index] || null,
@@ -22,6 +30,10 @@ function parseWorkoutExercises(formData: FormData) {
         sets,
         reps,
         weight_target: Number.isFinite(weightTarget) ? weightTarget : null,
+        rpe: Number.isFinite(rpe) ? rpe : null,
+        rir: Number.isFinite(rir) ? rir : null,
+        rest_seconds: Number.isFinite(rest_seconds) ? rest_seconds : null,
+        is_superset,
         order_index: index,
       }
     })
@@ -43,12 +55,16 @@ async function replaceWorkoutExercises(
 
   const { error } = await supabase
     .from('workout_exercises')
-    .insert(exercises.map(({ exercise_name, sets, reps, weight_target, order_index }) => ({
+    .insert(exercises.map(({ exercise_name, sets, reps, weight_target, rpe, rir, is_superset, rest_seconds, order_index }) => ({
       workout_id: workoutId,
       exercise_name,
       sets,
       reps,
       weight_target,
+      rpe,
+      rir,
+      is_superset,
+      rest_seconds,
       order_index,
     })))
 
@@ -232,7 +248,13 @@ export async function updateParticipantStatus(participantId: string, status: 'ac
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  // We could verify trainer ownership, but RLS handles it.
+  // Get participant details first
+  const { data: participant } = await supabase
+    .from('workout_participants')
+    .select('client_id, workout_id, workouts(title)')
+    .eq('id', participantId)
+    .single()
+
   const { error } = await supabase
     .from('workout_participants')
     .update({ status })
@@ -240,6 +262,20 @@ export async function updateParticipantStatus(participantId: string, status: 'ac
 
   if (error) {
     return { error: error.message }
+  }
+
+  if (participant && participant.workouts) {
+    const title = status === 'accepted' ? 'Edzés jóváhagyva!' : 'Edzés elutasítva'
+    const message = status === 'accepted' 
+      ? `Az edződ elfogadta a jelentkezésedet a(z) "${(participant.workouts as any).title}" edzésre.`
+      : `Az edződ sajnos elutasította a jelentkezésedet a(z) "${(participant.workouts as any).title}" edzésre.`
+
+    await supabase.from('notifications').insert({
+      user_id: participant.client_id,
+      title,
+      message,
+      type: 'workout_status'
+    })
   }
 
   revalidatePath('/coach/workouts')

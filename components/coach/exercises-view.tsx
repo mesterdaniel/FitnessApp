@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,10 +8,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
-import { Plus, Dumbbell, Pencil, Trash2, Search } from 'lucide-react'
+import { Plus, Dumbbell, Pencil, Trash2, Search, Check } from 'lucide-react'
 import { addExercise, updateExercise, deleteExercise } from '@/app/(dashboard)/coach/exercises/actions'
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { value: 'strength', label: 'Erő' },
   { value: 'cardio', label: 'Kardió' },
   { value: 'flexibility', label: 'Mobilitás / Nyújtás' },
@@ -20,16 +20,92 @@ const CATEGORIES = [
   { value: 'other', label: 'Egyéb' },
 ]
 
-const MUSCLE_GROUPS = [
+const DEFAULT_MUSCLE_GROUPS = [
   { value: 'chest', label: 'Mell' },
   { value: 'back', label: 'Hát' },
   { value: 'shoulders', label: 'Váll' },
-  { value: 'arms', label: 'Karok' },
+  { value: 'triceps', label: 'Tricepsz' },
+  { value: 'biceps', label: 'Bicepsz' },
+  { value: 'forearms', label: 'Alkar' },
   { value: 'legs', label: 'Láb' },
   { value: 'core', label: 'Törzs / Has' },
   { value: 'glutes', label: 'Fenék' },
   { value: 'full_body', label: 'Teljes test' },
 ]
+
+function MuscleGroupSelector({ 
+  selected, 
+  onChange, 
+  availableGroups 
+}: { 
+  selected: string[], 
+  onChange: (groups: string[]) => void,
+  availableGroups: {value: string, label: string}[]
+}) {
+  const [newGroup, setNewGroup] = useState('')
+
+  const toggle = (value: string) => {
+    if (selected.includes(value)) {
+      onChange(selected.filter(v => v !== value))
+    } else {
+      onChange([...selected, value])
+    }
+  }
+
+  const handleAddNew = () => {
+    if (newGroup.trim() && !selected.includes(newGroup.trim())) {
+      onChange([...selected, newGroup.trim()])
+      setNewGroup('')
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {availableGroups.map(mg => {
+          const isSelected = selected.includes(mg.value)
+          return (
+            <button
+              key={mg.value}
+              type="button"
+              onClick={() => toggle(mg.value)}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                isSelected
+                  ? 'bg-primary/25 text-primary ring-1 ring-primary/40 shadow-sm shadow-primary/10'
+                  : 'bg-background/80 text-zinc-400 hover:bg-background hover:text-zinc-300'
+              }`}
+            >
+              {isSelected && <Check className="w-3.5 h-3.5" />}
+              {mg.label}
+            </button>
+          )
+        })}
+      </div>
+      <div className="flex gap-2 max-w-sm">
+        <Input 
+          value={newGroup} 
+          onChange={(e) => setNewGroup(e.target.value)} 
+          placeholder="Saját izomcsoport..." 
+          className="bg-background border-none rounded-full h-10 px-4 text-sm"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              handleAddNew()
+            }
+          }}
+        />
+        <Button 
+          type="button" 
+          onClick={handleAddNew}
+          variant="secondary"
+          className="rounded-full h-10 px-4 shrink-0 bg-background hover:bg-zinc-800"
+        >
+          Hozzáadás
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 export function ExercisesView({ exercises }: { exercises: any[] }) {
   const [open, setOpen] = useState(false)
@@ -37,23 +113,87 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
   const [editingExercise, setEditingExercise] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [newMuscleGroups, setNewMuscleGroups] = useState<string[]>([])
+  const [editMuscleGroups, setEditMuscleGroups] = useState<string[]>([])
+  const [isCustomCategory, setIsCustomCategory] = useState(false)
+  const [customCategory, setCustomCategory] = useState('')
+
+  // Derive all unique categories and muscle groups from existing exercises + defaults
+  const categories = useMemo(() => {
+    const existing = new Set<string>()
+    exercises.forEach(e => {
+      if (e.category) existing.add(e.category)
+    })
+    
+    const combined = [...DEFAULT_CATEGORIES]
+    existing.forEach(cat => {
+      if (!combined.find(c => c.value === cat)) {
+        combined.push({ value: cat, label: cat }) // For custom ones, value and label are same
+      }
+    })
+    return combined
+  }, [exercises])
+
+  const muscleGroups = useMemo(() => {
+    const existing = new Set<string>()
+    exercises.forEach(e => {
+      if (e.muscle_groups) {
+        e.muscle_groups.forEach((mg: string) => existing.add(mg))
+      }
+    })
+    
+    const combined = [...DEFAULT_MUSCLE_GROUPS]
+    existing.forEach(mg => {
+      if (!combined.find(c => c.value === mg)) {
+        combined.push({ value: mg, label: mg })
+      }
+    })
+    
+    // Also include any currently selected custom ones in the dialogs
+    const allSelected = new Set([...newMuscleGroups, ...editMuscleGroups])
+    allSelected.forEach(mg => {
+      if (!combined.find(c => c.value === mg)) {
+        combined.push({ value: mg, label: mg })
+      }
+    })
+
+    return combined
+  }, [exercises, newMuscleGroups, editMuscleGroups])
 
   const handleAddSubmit = async (formData: FormData) => {
-    const res = await addExercise(formData)
+    const cleanedData = new FormData()
+    formData.forEach((value, key) => {
+      if (key !== 'muscle_group') cleanedData.append(key, value)
+    })
+    newMuscleGroups.forEach(mg => cleanedData.append('muscle_group', mg))
+
+    const res = await addExercise(cleanedData)
     if (res && res.error) {
       alert("Hiba: " + res.error)
     } else {
       setOpen(false)
+      setNewMuscleGroups([])
+      setIsCustomCategory(false)
+      setCustomCategory('')
     }
   }
 
   const handleEditSubmit = async (formData: FormData) => {
-    const res = await updateExercise(formData)
+    const cleanedData = new FormData()
+    formData.forEach((value, key) => {
+      if (key !== 'muscle_group') cleanedData.append(key, value)
+    })
+    editMuscleGroups.forEach(mg => cleanedData.append('muscle_group', mg))
+
+    const res = await updateExercise(cleanedData)
     if (res && res.error) {
       alert("Hiba: " + res.error)
     } else {
       setEditOpen(false)
       setEditingExercise(null)
+      setEditMuscleGroups([])
+      setIsCustomCategory(false)
+      setCustomCategory('')
     }
   }
 
@@ -66,8 +206,23 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
     }
   }
 
-  const getCategoryLabel = (value: string) => CATEGORIES.find(c => c.value === value)?.label || value || '—'
-  const getMuscleGroupLabel = (value: string) => MUSCLE_GROUPS.find(m => m.value === value)?.label || value || '—'
+  const openEditDialog = (exercise: any) => {
+    setEditingExercise(exercise)
+    setEditMuscleGroups(exercise.muscle_groups || [])
+    
+    // Check if the exercise category is custom
+    const isCustom = exercise.category && !categories.find(c => c.value === exercise.category && c !== categories.find(def => def.value === exercise.category))
+    if (isCustom || (exercise.category && !DEFAULT_CATEGORIES.find(c => c.value === exercise.category))) {
+      setIsCustomCategory(false) // Still show it in dropdown since we appended custom categories dynamically
+    } else {
+      setIsCustomCategory(false)
+    }
+    
+    setEditOpen(true)
+  }
+
+  const getCategoryLabel = (value: string) => categories.find(c => c.value === value)?.label || value || '—'
+  const getMuscleGroupLabel = (value: string) => muscleGroups.find(m => m.value === value)?.label || value || '—'
 
   // Filtering
   const filteredExercises = exercises.filter(ex => {
@@ -86,7 +241,14 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
         </div>
 
         {/* Új gyakorlat gomb */}
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(o) => { 
+          setOpen(o); 
+          if (!o) {
+            setNewMuscleGroups([])
+            setIsCustomCategory(false)
+            setCustomCategory('')
+          } 
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground rounded-full font-bold px-6 shadow-lg shadow-primary/20">
               <Plus className="w-5 h-5 mr-2" /> Új Gyakorlat
@@ -101,33 +263,51 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
                 <Label htmlFor="name" className="text-zinc-400 ml-2">Név *</Label>
                 <Input id="name" name="name" placeholder="pl. Fekvenyomás" required className="bg-background border-none rounded-full h-12 px-4" />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-zinc-400 ml-2">Kategória</Label>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-2">
+                  <Label className="text-zinc-400">Kategória</Label>
+                  {!isCustomCategory && (
+                    <button type="button" onClick={() => setIsCustomCategory(true)} className="text-xs text-primary hover:underline">
+                      + Új kategória írása
+                    </button>
+                  )}
+                </div>
+                
+                {isCustomCategory ? (
+                  <div className="flex gap-2">
+                    <Input 
+                      name="category" 
+                      value={customCategory}
+                      onChange={e => setCustomCategory(e.target.value)}
+                      placeholder="Írd be az új kategóriát..." 
+                      className="bg-background border-none rounded-full h-12 px-4 flex-1" 
+                      autoFocus
+                    />
+                    <Button type="button" variant="ghost" onClick={() => {setIsCustomCategory(false); setCustomCategory('')}} className="rounded-full h-12 hover:bg-background">
+                      Vissza
+                    </Button>
+                  </div>
+                ) : (
                   <Select name="category">
                     <SelectTrigger className="bg-background border-none rounded-full h-12 px-4 w-full">
                       <SelectValue placeholder="Válassz..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-                      {CATEGORIES.map(c => (
-                        <SelectItem key={c.value} value={c.value} className="rounded-xl">{c.label}</SelectItem>
+                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+                      {categories.map(c => (
+                        <SelectItem key={c.value} value={c.value} className="rounded-xl py-2.5">{c.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-zinc-400 ml-2">Izomcsoport</Label>
-                  <Select name="muscle_group">
-                    <SelectTrigger className="bg-background border-none rounded-full h-12 px-4 w-full">
-                      <SelectValue placeholder="Válassz..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-                      {MUSCLE_GROUPS.map(m => (
-                        <SelectItem key={m.value} value={m.value} className="rounded-xl">{m.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label className="text-zinc-400 ml-2">Izomcsoportok</Label>
+                <p className="text-xs text-zinc-500 ml-2">Válassz egy vagy több izomcsoportot</p>
+                <MuscleGroupSelector 
+                  selected={newMuscleGroups} 
+                  onChange={setNewMuscleGroups} 
+                  availableGroups={muscleGroups} 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description" className="text-zinc-400 ml-2">Leírás / Végrehajtás</Label>
@@ -157,10 +337,10 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
           <SelectTrigger className="bg-card border-none rounded-full h-12 px-4 w-full sm:w-48">
             <SelectValue placeholder="Szűrés..." />
           </SelectTrigger>
-          <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-            <SelectItem value="all" className="rounded-xl">Összes Kategória</SelectItem>
-            {CATEGORIES.map(c => (
-              <SelectItem key={c.value} value={c.value} className="rounded-xl">{c.label}</SelectItem>
+          <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+            <SelectItem value="all" className="rounded-xl py-2.5">Összes Kategória</SelectItem>
+            {categories.map(c => (
+              <SelectItem key={c.value} value={c.value} className="rounded-xl py-2.5">{c.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -168,7 +348,15 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
 
       {/* Szerkesztő modal */}
       {editingExercise && (
-        <Dialog open={editOpen} onOpenChange={(o) => { setEditOpen(o); if (!o) setEditingExercise(null) }}>
+        <Dialog open={editOpen} onOpenChange={(o) => { 
+          setEditOpen(o); 
+          if (!o) { 
+            setEditingExercise(null); 
+            setEditMuscleGroups([]);
+            setIsCustomCategory(false);
+            setCustomCategory('');
+          } 
+        }}>
           <DialogContent className="bg-card border-none shadow-2xl rounded-[2rem] sm:max-w-xl">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">Gyakorlat Szerkesztése</DialogTitle>
@@ -179,33 +367,51 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
                 <Label className="text-zinc-400 ml-2">Név *</Label>
                 <Input name="name" defaultValue={editingExercise.name} required className="bg-background border-none rounded-full h-12 px-4" />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-zinc-400 ml-2">Kategória</Label>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-2">
+                  <Label className="text-zinc-400">Kategória</Label>
+                  {!isCustomCategory && (
+                    <button type="button" onClick={() => setIsCustomCategory(true)} className="text-xs text-primary hover:underline">
+                      + Új kategória írása
+                    </button>
+                  )}
+                </div>
+                
+                {isCustomCategory ? (
+                  <div className="flex gap-2">
+                    <Input 
+                      name="category" 
+                      defaultValue={editingExercise.category}
+                      onChange={e => setCustomCategory(e.target.value)}
+                      placeholder="Írd be az új kategóriát..." 
+                      className="bg-background border-none rounded-full h-12 px-4 flex-1" 
+                      autoFocus
+                    />
+                    <Button type="button" variant="ghost" onClick={() => setIsCustomCategory(false)} className="rounded-full h-12 hover:bg-background">
+                      Vissza
+                    </Button>
+                  </div>
+                ) : (
                   <Select name="category" defaultValue={editingExercise.category || ""}>
                     <SelectTrigger className="bg-background border-none rounded-full h-12 px-4 w-full">
                       <SelectValue placeholder="Válassz..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-                      {CATEGORIES.map(c => (
-                        <SelectItem key={c.value} value={c.value} className="rounded-xl">{c.label}</SelectItem>
+                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+                      {categories.map(c => (
+                        <SelectItem key={c.value} value={c.value} className="rounded-xl py-2.5">{c.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-zinc-400 ml-2">Izomcsoport</Label>
-                  <Select name="muscle_group" defaultValue={editingExercise.muscle_group || ""}>
-                    <SelectTrigger className="bg-background border-none rounded-full h-12 px-4 w-full">
-                      <SelectValue placeholder="Válassz..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-                      {MUSCLE_GROUPS.map(m => (
-                        <SelectItem key={m.value} value={m.value} className="rounded-xl">{m.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label className="text-zinc-400 ml-2">Izomcsoportok</Label>
+                <p className="text-xs text-zinc-500 ml-2">Válassz egy vagy több izomcsoportot</p>
+                <MuscleGroupSelector 
+                  selected={editMuscleGroups} 
+                  onChange={setEditMuscleGroups} 
+                  availableGroups={muscleGroups} 
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-zinc-400 ml-2">Leírás / Végrehajtás</Label>
@@ -230,7 +436,7 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
         {filteredExercises.length > 0 ? (
           filteredExercises.map((exercise: any) => (
             <Card key={exercise.id} className="bg-card border-none shadow-md rounded-3xl overflow-hidden group cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all"
-              onClick={() => { setEditingExercise(exercise); setEditOpen(true) }}>
+              onClick={() => openEditDialog(exercise)}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1 space-y-2">
@@ -243,10 +449,12 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
                           {getCategoryLabel(exercise.category)}
                         </span>
                       )}
-                      {exercise.muscle_group && (
-                        <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400">
-                          {getMuscleGroupLabel(exercise.muscle_group)}
-                        </span>
+                      {exercise.muscle_groups && exercise.muscle_groups.length > 0 && (
+                        exercise.muscle_groups.map((mg: string) => (
+                          <span key={mg} className="px-3 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400">
+                            {getMuscleGroupLabel(mg)}
+                          </span>
+                        ))
                       )}
                     </div>
                     {exercise.description && (

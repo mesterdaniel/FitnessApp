@@ -12,7 +12,7 @@ export async function bookWorkout(workoutId: string, _formData: FormData): Promi
   // Check if workout is still available (status = available, and capacity is not full)
   const { data: workout } = await supabase
     .from('workouts')
-    .select('status, capacity')
+    .select('status, capacity, title, trainer_id')
     .eq('id', workoutId)
     .single()
 
@@ -44,6 +44,16 @@ export async function bookWorkout(workoutId: string, _formData: FormData): Promi
       client_id: user.id,
       status: 'pending'
     }, { onConflict: 'workout_id,client_id' })
+
+  // Notify the coach
+  const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+  
+  await supabase.from('notifications').insert({
+    user_id: workout.trainer_id,
+    title: 'Új jelentkező',
+    message: `${profile?.full_name || 'Egy kliens'} jelentkezett a(z) "${workout.title}" edzésedre.`,
+    type: 'new_booking'
+  })
 
   revalidatePath('/client/workouts')
   revalidatePath('/client')

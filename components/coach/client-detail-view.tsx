@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, CalendarDays, Scale, Dumbbell, Trophy, TrendingUp, TrendingDown, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ProgressChart } from '@/components/client/progress-chart'
@@ -19,7 +21,19 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs }:
   const totalWorkouts = workouts.length
   const completedWorkouts = workouts.filter(w => new Date(w.starts_at) < new Date()).length
   const currentWeight = weightLogs.length > 0 ? parseFloat(weightLogs[0].weight_kg) : null
-  const maxWeight = exerciseLogs.length > 0 ? Math.max(...exerciseLogs.map(l => l.weight)) : 0
+  
+  const exerciseNames = Array.from(new Set(exerciseLogs.map(l => l.exercise_name)))
+  const defaultTopExercise = [...exerciseNames].sort((a, b) =>
+    exerciseLogs.filter(v => v.exercise_name === b).length - exerciseLogs.filter(v => v.exercise_name === a).length
+  )[0] || ''
+
+  const [selectedExercise, setSelectedExercise] = useState<string>(defaultTopExercise)
+
+  const rawFilteredLogs = exerciseLogs
+    .filter(log => log.exercise_name === selectedExercise)
+    .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
+
+  const maxWeight = rawFilteredLogs.length > 0 ? Math.max(...rawFilteredLogs.map(l => l.weight)) : 0
   const age = client.birth_date ? (() => {
     const birth = new Date(client.birth_date)
     const today = new Date()
@@ -35,14 +49,7 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs }:
     weight: parseFloat(log.weight_kg),
   }))
 
-  // Exercise logs chart — pick most common exercise
-  const exerciseNames = exerciseLogs.map(l => l.exercise_name)
-  const topExercise = exerciseNames.sort((a, b) =>
-    exerciseNames.filter(v => v === b).length - exerciseNames.filter(v => v === a).length
-  )[0] || ''
-
-  const exerciseChartData = [...exerciseLogs]
-    .filter(l => l.exercise_name === topExercise)
+  const exerciseChartData = [...rawFilteredLogs]
     .reverse()
     .map(log => ({
       date: new Date(log.logged_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }),
@@ -72,6 +79,16 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs }:
         </div>
       </div>
 
+      {/* Bio / Goals */}
+      {client.bio && (
+        <Card className="bg-card border-none rounded-3xl shadow-md">
+          <CardContent className="p-5">
+            <h3 className="font-bold mb-2 flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Célok & Magamról</h3>
+            <p className="text-zinc-400 text-sm whitespace-pre-wrap">{client.bio}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-3xl">
@@ -99,10 +116,30 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs }:
           <CardContent className="p-4 text-center">
             <Trophy className="h-5 w-5 mx-auto text-yellow-500 mb-1" />
             <div className="text-2xl font-bold text-zinc-100">{maxWeight > 0 ? `${maxWeight} kg` : '-'}</div>
-            <p className="text-xs text-zinc-500">PR (max súly)</p>
+            <p className="text-xs text-zinc-500 truncate" title={selectedExercise || 'PR (max súly)'}>
+              {selectedExercise ? `PR (${selectedExercise})` : 'PR'}
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Exercise Selector */}
+      {exerciseNames.length > 0 && (
+        <div className="flex justify-end">
+          <Select value={selectedExercise} onValueChange={setSelectedExercise}>
+            <SelectTrigger className="w-full bg-card border-none shadow-sm rounded-full h-12 sm:w-[220px]">
+              <SelectValue placeholder="Válassz gyakorlatot" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border border-zinc-800 rounded-2xl shadow-xl overflow-hidden">
+              <div className="p-1">
+                {exerciseNames.map(ex => (
+                  <SelectItem key={ex} value={ex} className="rounded-xl cursor-pointer">{ex}</SelectItem>
+                ))}
+              </div>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Charts */}
       {weightChartData.length > 1 && (
@@ -110,7 +147,7 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs }:
       )}
       
       {exerciseChartData.length > 1 && (
-        <ProgressChart data={exerciseChartData} exerciseName={`Fejlődés: ${topExercise}`} />
+        <ProgressChart data={exerciseChartData} exerciseName={`Fejlődés: ${selectedExercise}`} />
       )}
 
       {/* Workout History */}

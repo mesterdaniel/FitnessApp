@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, CalendarDays, Clock, MapPin, User, Trash2, Users, Check, X, List } from "lucide-react"
+import { Plus, CalendarDays, Clock, MapPin, User, Trash2, Users, Check, X, List, Settings2, Link as LinkIcon } from "lucide-react"
 import { addWorkout, updateWorkout, deleteWorkout, updateParticipantStatus } from "@/app/(dashboard)/coach/workouts/actions"
 import { WorkoutCalendar } from "@/components/shared/workout-calendar"
 
@@ -20,6 +20,10 @@ type PlanExercise = {
   sets: number
   reps: number
   weight_target: string
+  rpe: string
+  rir: string
+  rest_seconds: string
+  is_superset: boolean
 }
 
 export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises }: { workouts: any[], clients: any[], exercises?: any[] }) {
@@ -28,6 +32,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
   const [editingWorkout, setEditingWorkout] = useState<any>(null)
   const [newPlanExercises, setNewPlanExercises] = useState<PlanExercise[]>([])
   const [editPlanExercises, setEditPlanExercises] = useState<PlanExercise[]>([])
+  const [expandedAdvanced, setExpandedAdvanced] = useState<Record<string, boolean>>({})
 
   const createPlanRow = (exerciseName = ""): PlanExercise => ({
     key: crypto.randomUUID(),
@@ -35,6 +40,10 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
     sets: 3,
     reps: 10,
     weight_target: "",
+    rpe: "",
+    rir: "",
+    rest_seconds: "",
+    is_superset: false,
   })
 
   const getAssignedClientId = (workout: any) => {
@@ -52,7 +61,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
     mode: 'new' | 'edit',
     key: string,
     field: keyof Omit<PlanExercise, 'key' | 'id'>,
-    value: string | number
+    value: string | number | boolean
   ) => {
     const updater = mode === 'new' ? setNewPlanExercises : setEditPlanExercises
     updater((items) =>
@@ -63,6 +72,10 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
   const removePlanExercise = (mode: 'new' | 'edit', key: string) => {
     const updater = mode === 'new' ? setNewPlanExercises : setEditPlanExercises
     updater((items) => items.filter((item) => item.key !== key))
+  }
+
+  const toggleAdvanced = (key: string) => {
+    setExpandedAdvanced(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
   const handleAddSubmit = async (formData: FormData) => {
@@ -118,6 +131,10 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
         sets: exercise.sets,
         reps: exercise.reps,
         weight_target: exercise.weight_target ? String(exercise.weight_target) : "",
+        rpe: exercise.rpe ? String(exercise.rpe) : "",
+        rir: exercise.rir ? String(exercise.rir) : "",
+        rest_seconds: exercise.rest_seconds ? String(exercise.rest_seconds) : "",
+        is_superset: exercise.is_superset || false,
       })))
     setEditOpen(true)
   }
@@ -138,7 +155,6 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
 
   const handleDayClick = (date: string, dayWorkouts: any[]) => {
     setSelectedDate(date)
-    // Find full workout data from the workouts array
     const fullWorkouts = dayWorkouts.map(dw => workouts.find(w => w.id === dw.id)).filter(Boolean)
     setSelectedDayWorkouts(fullWorkouts)
   }
@@ -169,79 +185,148 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
         )}
 
         <div className="space-y-3">
-          {planExercises.map((exercise) => (
-            <div key={exercise.key} className="grid gap-3 rounded-2xl bg-card p-3 md:grid-cols-[1fr_72px_88px_104px_40px]">
-              <input type="hidden" name="workout_exercise_id" value={exercise.id || ""} />
-              <input type="hidden" name="workout_exercise_name" value={exercise.exercise_name} />
-              <input type="hidden" name="workout_exercise_sets" value={exercise.sets} />
-              <input type="hidden" name="workout_exercise_reps" value={exercise.reps} />
-              <input type="hidden" name="workout_exercise_weight_target" value={exercise.weight_target} />
+          {planExercises.map((exercise, index) => {
+            const isAdvanced = expandedAdvanced[exercise.key]
+            return (
+              <div key={exercise.key} className="flex flex-col gap-2 rounded-2xl bg-card p-3 shadow-sm border border-zinc-800">
+                <input type="hidden" name="workout_exercise_id" value={exercise.id || ""} />
+                <input type="hidden" name="workout_exercise_name" value={exercise.exercise_name} />
+                <input type="hidden" name="workout_exercise_sets" value={exercise.sets} />
+                <input type="hidden" name="workout_exercise_reps" value={exercise.reps} />
+                <input type="hidden" name="workout_exercise_weight_target" value={exercise.weight_target} />
+                <input type="hidden" name="workout_exercise_rpe" value={exercise.rpe} />
+                <input type="hidden" name="workout_exercise_rir" value={exercise.rir} />
+                <input type="hidden" name="workout_exercise_rest_seconds" value={exercise.rest_seconds} />
+                <input type="hidden" name="workout_exercise_is_superset" value={exercise.is_superset ? "true" : "false"} />
 
-              <div className="space-y-1">
-                <Label className="text-xs text-zinc-500">Gyakorlat</Label>
-                <Select
-                  value={exercise.exercise_name}
-                  onValueChange={(value) => updatePlanExercise(mode, exercise.key, 'exercise_name', value)}
-                >
-                  <SelectTrigger className="w-full bg-background border-none rounded-full h-10 px-3">
-                    <SelectValue placeholder="Válassz" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-                    {(coachExercises || []).map((coachExercise) => (
-                      <SelectItem key={coachExercise.id} value={coachExercise.name} className="rounded-xl">
-                        {coachExercise.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="grid gap-3 md:grid-cols-[1fr_72px_88px_104px_auto_40px] items-end">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-zinc-500">Gyakorlat {exercise.is_superset && <span className="text-primary ml-1">(Szuperszett)</span>}</Label>
+                    <Select
+                      value={exercise.exercise_name}
+                      onValueChange={(value) => updatePlanExercise(mode, exercise.key, 'exercise_name', value)}
+                    >
+                      <SelectTrigger className="w-full bg-background border-none rounded-full h-10 px-3">
+                        <SelectValue placeholder="Válassz" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
+                        {(coachExercises || []).map((coachExercise) => (
+                          <SelectItem key={coachExercise.id} value={coachExercise.name} className="rounded-xl py-2.5">
+                            {coachExercise.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-zinc-500">Sor.</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={exercise.sets}
+                      onChange={(event) => updatePlanExercise(mode, exercise.key, 'sets', parseInt(event.target.value || '0', 10))}
+                      className="bg-background border-none rounded-full h-10 px-3"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-zinc-500">Ism.</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={exercise.reps}
+                      onChange={(event) => updatePlanExercise(mode, exercise.key, 'reps', parseInt(event.target.value || '0', 10))}
+                      className="bg-background border-none rounded-full h-10 px-3"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-zinc-500">Cél kg</Label>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      value={exercise.weight_target}
+                      onChange={(event) => updatePlanExercise(mode, exercise.key, 'weight_target', event.target.value)}
+                      placeholder="-"
+                      className="bg-background border-none rounded-full h-10 px-3"
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => toggleAdvanced(exercise.key)}
+                    className={`h-10 rounded-full px-3 text-xs ${isAdvanced ? 'bg-primary/10 text-primary' : 'text-zinc-400 hover:text-zinc-200 hover:bg-background'}`}
+                  >
+                    <Settings2 className="w-4 h-4 mr-1" />
+                    Haladó
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => removePlanExercise(mode, exercise.key)}
+                    className="self-end rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive h-10 w-10 p-0"
+                    aria-label="Gyakorlat törlése"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Haladó mezők */}
+                {isAdvanced && (
+                  <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 mt-2 p-3 bg-background/50 rounded-2xl border border-zinc-800/50">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-500">RPE (1-10)</Label>
+                      <Input
+                        type="number"
+                        min="1" max="10"
+                        value={exercise.rpe}
+                        onChange={(event) => updatePlanExercise(mode, exercise.key, 'rpe', event.target.value)}
+                        placeholder="Erőkifejtés"
+                        className="bg-background border-none rounded-full h-9 px-3 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-500">RIR (0-10)</Label>
+                      <Input
+                        type="number"
+                        min="0" max="10"
+                        value={exercise.rir}
+                        onChange={(event) => updatePlanExercise(mode, exercise.key, 'rir', event.target.value)}
+                        placeholder="Tartalék"
+                        className="bg-background border-none rounded-full h-9 px-3 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-500">Pihenő (mp)</Label>
+                      <Input
+                        type="number"
+                        min="0" step="15"
+                        value={exercise.rest_seconds}
+                        onChange={(event) => updatePlanExercise(mode, exercise.key, 'rest_seconds', event.target.value)}
+                        placeholder="Pl. 90"
+                        className="bg-background border-none rounded-full h-9 px-3 text-sm"
+                      />
+                    </div>
+                    <div className="flex items-end pb-1">
+                      <Button
+                        type="button"
+                        variant={exercise.is_superset ? "default" : "outline"}
+                        onClick={() => updatePlanExercise(mode, exercise.key, 'is_superset', !exercise.is_superset)}
+                        className={`h-9 w-full rounded-full text-xs font-semibold ${exercise.is_superset ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' : 'border-zinc-700 bg-transparent text-zinc-400'}`}
+                      >
+                        <LinkIcon className="w-3.5 h-3.5 mr-1.5" />
+                        Szuperszett
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs text-zinc-500">Sor.</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={exercise.sets}
-                  onChange={(event) => updatePlanExercise(mode, exercise.key, 'sets', parseInt(event.target.value || '0', 10))}
-                  className="bg-background border-none rounded-full h-10 px-3"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs text-zinc-500">Ism.</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={exercise.reps}
-                  onChange={(event) => updatePlanExercise(mode, exercise.key, 'reps', parseInt(event.target.value || '0', 10))}
-                  className="bg-background border-none rounded-full h-10 px-3"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs text-zinc-500">Cél kg</Label>
-                <Input
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  value={exercise.weight_target}
-                  onChange={(event) => updatePlanExercise(mode, exercise.key, 'weight_target', event.target.value)}
-                  placeholder="-"
-                  className="bg-background border-none rounded-full h-10 px-3"
-                />
-              </div>
-
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => removePlanExercise(mode, exercise.key)}
-                className="self-end rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive h-10 w-10 p-0"
-                aria-label="Gyakorlat törlése"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     )
@@ -254,7 +339,10 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
         
         <Dialog open={open} onOpenChange={(nextOpen) => {
           setOpen(nextOpen)
-          if (!nextOpen) setNewPlanExercises([])
+          if (!nextOpen) {
+            setNewPlanExercises([])
+            setExpandedAdvanced({})
+          }
         }}>
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-bold px-6 shadow-lg shadow-primary/20">
@@ -262,7 +350,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
               Új edzés
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-none text-foreground rounded-[2rem] sm:max-w-3xl">
+          <DialogContent className="bg-card border-none text-foreground rounded-[2rem] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Új edzés kiírása</DialogTitle>
             </DialogHeader>
@@ -273,10 +361,10 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                   <SelectTrigger className="w-full bg-background border-none rounded-full h-12 px-4">
                     <SelectValue placeholder="Válassz klienst" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-                    <SelectItem value="open" className="rounded-xl font-bold text-primary">Bárki (Szabad időpont)</SelectItem>
+                  <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+                    <SelectItem value="open" className="rounded-xl py-2.5 font-bold text-primary">Bárki (Szabad időpont)</SelectItem>
                     {clients.map(c => (
-                      <SelectItem key={c.id} value={c.id} className="rounded-xl">{c.full_name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id} className="rounded-xl py-2.5">{c.full_name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -310,11 +398,11 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                 <Input id="location" name="location" placeholder="pl. Cutler Gym" className="bg-background border-none rounded-full h-12 px-4" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notes" className="text-zinc-400 ml-2">Megjegyzés / Edzésterv (opcionális)</Label>
+                <Label htmlFor="notes" className="text-zinc-400 ml-2">Megjegyzés (opcionális)</Label>
                 <Textarea id="notes" name="notes" placeholder="Ide írhatsz plusz információkat, utasításokat az edzéshez..." className="bg-background border-none rounded-2xl p-4 min-h-[100px]" />
               </div>
               {renderPlanBuilder('new')}
-              <DialogFooter className="mt-8 gap-2 sm:gap-0">
+              <DialogFooter className="mt-8 gap-2 sm:gap-0 sticky bottom-0 bg-card/80 backdrop-blur-md p-4 -mx-6 -mb-6 rounded-b-[2rem] border-t border-zinc-800">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="rounded-full hover:bg-background">Mégsem</Button>
                 <Button type="submit" className="bg-primary text-primary-foreground rounded-full font-bold px-8 shadow-lg shadow-primary/20">Létrehozás</Button>
               </DialogFooter>
@@ -328,9 +416,10 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
         if (!nextOpen) {
           setEditingWorkout(null)
           setEditPlanExercises([])
+          setExpandedAdvanced({})
         }
       }}>
-        <DialogContent className="bg-card border-none text-foreground rounded-[2rem] sm:max-w-3xl">
+        <DialogContent className="bg-card border-none text-foreground rounded-[2rem] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">Edzés szerkesztése</DialogTitle>
           </DialogHeader>
@@ -343,10 +432,10 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                   <SelectTrigger className="w-full bg-background border-none rounded-full h-12 px-4">
                     <SelectValue placeholder="Válassz klienst" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-                    <SelectItem value="open" className="rounded-xl font-bold text-primary">Bárki (Szabad időpont)</SelectItem>
+                  <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+                    <SelectItem value="open" className="rounded-xl py-2.5 font-bold text-primary">Bárki (Szabad időpont)</SelectItem>
                     {clients.map(c => (
-                      <SelectItem key={c.id} value={c.id} className="rounded-xl">{c.full_name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id} className="rounded-xl py-2.5">{c.full_name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -380,11 +469,11 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                 <Input id="edit_location" name="location" defaultValue={editingWorkout.location || ''} className="bg-background border-none rounded-full h-12 px-4" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_notes" className="text-zinc-400 ml-2">Megjegyzés / Edzésterv (opcionális)</Label>
+                <Label htmlFor="edit_notes" className="text-zinc-400 ml-2">Megjegyzés (opcionális)</Label>
                 <Textarea id="edit_notes" name="notes" defaultValue={editingWorkout.notes || ''} className="bg-background border-none rounded-2xl p-4 min-h-[100px]" />
               </div>
               {renderPlanBuilder('edit')}
-              <DialogFooter className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 w-full">
+              <DialogFooter className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 w-full sticky bottom-0 bg-card/80 backdrop-blur-md p-4 -mx-6 -mb-6 rounded-b-[2rem] border-t border-zinc-800">
                 <Button type="button" variant="ghost" onClick={() => handleDelete(editingWorkout.id)} className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive">
                   <Trash2 className="w-4 h-4 mr-2" /> Törlés
                 </Button>
@@ -399,11 +488,11 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
       </Dialog>
 
       <Tabs defaultValue="list" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-card border-none rounded-full p-1 h-auto mb-6 sm:w-fit">
-          <TabsTrigger value="list" className="rounded-full px-3 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
+        <TabsList className="grid w-full grid-cols-2 bg-card border-none rounded-full p-1 mb-6 sm:w-fit">
+          <TabsTrigger value="list" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
             <List className="w-4 h-4 mr-2" /> Lista
           </TabsTrigger>
-          <TabsTrigger value="calendar" className="rounded-full px-3 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
+          <TabsTrigger value="calendar" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
             <CalendarDays className="w-4 h-4 mr-2" /> Naptár
           </TabsTrigger>
         </TabsList>
@@ -413,8 +502,8 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
             {workouts && workouts.length > 0 ? (
               workouts.map((workout) => (
                 <Card key={workout.id} className="bg-card border-none shadow-md rounded-3xl overflow-hidden">
-                  <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-                    <div className="min-w-0 flex-1 space-y-2">
+                  <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+                    <div className="min-w-0 flex-1 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="min-w-0 break-words text-xl font-bold leading-tight text-zinc-100">{workout.title}</h3>
                         <div className={`px-3 py-0.5 rounded-full text-xs font-bold ${
@@ -450,15 +539,40 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
 
                       {/* Workout exercises */}
                       {workout.workout_exercises && workout.workout_exercises.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {workout.workout_exercises
-                            .slice()
-                            .sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0))
-                            .map((we: any) => (
-                            <span key={we.id} className="px-2 py-1 bg-background rounded-full text-xs text-zinc-400">
-                              {we.exercise_name} {we.sets}×{we.reps} {we.weight_target ? `${we.weight_target}kg` : ''}
-                            </span>
-                          ))}
+                        <div className="mt-3 bg-background/30 rounded-2xl p-4 border border-zinc-800/50">
+                          <h4 className="text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wider">Edzésterv</h4>
+                          <div className="flex flex-col gap-2 relative">
+                            {workout.workout_exercises
+                              .slice()
+                              .sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0))
+                              .map((we: any, index: number, arr: any[]) => {
+                                const isSupersetWithNext = we.is_superset
+                                const isSupersetWithPrev = index > 0 && arr[index - 1].is_superset
+
+                                return (
+                                  <div key={we.id} className="flex flex-wrap items-center gap-2 group relative">
+                                    {(isSupersetWithNext || isSupersetWithPrev) && (
+                                      <div className={`absolute -left-3 w-1 bg-primary/50 rounded-full ${isSupersetWithNext && !isSupersetWithPrev ? 'top-2 bottom-[-1rem]' : isSupersetWithPrev && !isSupersetWithNext ? 'top-[-1rem] bottom-2' : 'top-[-1rem] bottom-[-1rem]'}`} />
+                                    )}
+                                    <span className="font-semibold text-zinc-200">
+                                      {we.exercise_name}
+                                    </span>
+                                    <div className="flex flex-wrap items-center gap-1.5 ml-2">
+                                      <span className="px-2 py-0.5 bg-background border border-zinc-800 rounded-md text-xs font-medium text-zinc-400">
+                                        {we.sets} × {we.reps} {we.weight_target ? `@ ${we.weight_target}kg` : ''}
+                                      </span>
+                                      {(we.rpe || we.rir || we.rest_seconds) && (
+                                        <div className="flex items-center gap-1 ml-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                                          {we.rpe && <span className="px-1.5 py-0.5 bg-red-500/10 text-red-400 rounded text-[10px] font-bold">RPE {we.rpe}</span>}
+                                          {we.rir !== null && <span className="px-1.5 py-0.5 bg-orange-500/10 text-orange-400 rounded text-[10px] font-bold">RIR {we.rir}</span>}
+                                          {we.rest_seconds && <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[10px] font-bold">{we.rest_seconds}mp pihenő</span>}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                          </div>
                         </div>
                       )}
 
@@ -474,12 +588,12 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                               </span>
                               <span className="text-xs text-zinc-600">({p.status === 'accepted' ? 'Elfogadva' : p.status === 'rejected' ? 'Elutasítva' : 'Függőben'})</span>
                               {p.status === 'pending' && (
-                                <div className="flex gap-1">
-                                  <Button onClick={() => handleStatusChange(p.id, 'accepted')} variant="ghost" className="h-6 w-6 p-0 text-green-500 hover:text-green-400 hover:bg-green-500/10 rounded-full">
-                                    <Check className="w-4 h-4" />
+                                <div className="flex gap-2 mt-1 sm:mt-0 sm:ml-4">
+                                  <Button onClick={() => handleStatusChange(p.id, 'accepted')} size="sm" className="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 rounded-full font-bold h-8 px-3">
+                                    <Check className="w-4 h-4 mr-1.5" /> Elfogadom
                                   </Button>
-                                  <Button onClick={() => handleStatusChange(p.id, 'rejected')} variant="ghost" className="h-6 w-6 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-full">
-                                    <X className="w-4 h-4" />
+                                  <Button onClick={() => handleStatusChange(p.id, 'rejected')} size="sm" variant="ghost" className="bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-full font-bold h-8 px-3">
+                                    <X className="w-4 h-4 mr-1.5" /> Elutasítom
                                   </Button>
                                 </div>
                               )}

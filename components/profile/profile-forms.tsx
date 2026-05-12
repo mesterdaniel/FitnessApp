@@ -135,7 +135,7 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
                 <Label htmlFor="role" className="text-zinc-400 ml-2">Szerepkör</Label>
                 <Input 
                   id="role" 
-                  value={profile?.role === 'coach' ? 'Edző (Coach)' : profile?.role === 'admin' ? 'Adminisztrátor' : 'Kliens (Client)'} 
+                  value={profile?.role === 'trainer' ? 'Edző' : profile?.role === 'admin' ? 'Adminisztrátor' : 'Kliens'} 
                   disabled 
                   className="bg-background/50 border-none rounded-full h-12 px-6 text-zinc-500 font-semibold" 
                 />

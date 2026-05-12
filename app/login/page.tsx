@@ -1,17 +1,10 @@
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Dumbbell, AlertCircle } from "lucide-react"
+import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { login } from "./actions"
 import Link from "next/link"
+import { AuthLayout } from "@/components/shared/auth-layout"
 
 export default async function LoginPage({
   searchParams,
@@ -20,69 +13,70 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const error = params?.error;
+  const success = params?.success;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 p-4">
-      <Card className="w-full max-w-md border-zinc-800 bg-zinc-900 text-zinc-100 shadow-xl">
-        <CardHeader className="space-y-2 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 shadow-inner shadow-emerald-500/20">
-            <Dumbbell className="h-7 w-7 text-emerald-500" />
+    <AuthLayout>
+      <div className="space-y-2 text-center mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Üdvözlünk újra</h1>
+        <p className="text-sm text-zinc-500">
+          Jelentkezz be a fiókodba a folytatáshoz
+        </p>
+      </div>
+
+      <form action={login} className="space-y-5">
+        {success === 'password_updated' && (
+          <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/10 p-4 text-sm text-emerald-400">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>Jelszó sikeresen módosítva! Jelentkezz be az új jelszavaddal.</span>
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Üdvözlünk újra</CardTitle>
-          <CardDescription className="text-zinc-400">
-            Jelentkezz be a fiókodba a folytatáshoz
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={login} className="space-y-4">
-            {error && (
-              <div className="flex items-center gap-2 rounded-md bg-red-500/10 p-3 text-sm text-red-500">
-                <AlertCircle className="h-4 w-4" />
-                <span>Hibás email cím vagy jelszó.</span>
-              </div>
-            )}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-zinc-300">Email cím</Label>
-                <Input 
-                  id="email" 
-                  name="email"
-                  type="email" 
-                  placeholder="pelda@email.com" 
-                  required 
-                  className="border-zinc-800 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-emerald-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-zinc-300">Jelszó</Label>
-                  <a href="#" className="text-sm font-medium text-emerald-500 hover:text-emerald-400">
-                    Elfelejtetted a jelszavad?
-                  </a>
-                </div>
-                <Input 
-                  id="password" 
-                  name="password"
-                  type="password" 
-                  required 
-                  className="border-zinc-800 bg-zinc-950 text-zinc-100 focus-visible:ring-emerald-500"
-                />
-              </div>
-            </div>
-            <Button type="submit" className="w-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors mt-6">
-              Bejelentkezés
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-center text-sm text-zinc-400">
-            Nincs még fiókod?{" "}
-            <Link href="/register" className="font-medium text-emerald-500 hover:text-emerald-400">
-              Regisztrálj itt
+        )}
+        {error && (
+          <div className="flex items-center gap-2 rounded-2xl bg-red-500/10 p-4 text-sm text-red-400">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>Hibás email cím vagy jelszó.</span>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-zinc-400 ml-1 text-sm">Email cím</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="pelda@email.com"
+            required
+            className="h-12 rounded-full border-none bg-white/[0.06] px-5 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-[oklch(0.75_0.12_90)]"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-zinc-400 ml-1 text-sm">Jelszó</Label>
+            <Link href="/forgot-password" className="text-xs font-medium text-[oklch(0.75_0.12_90)] hover:text-[oklch(0.85_0.15_95)] transition-colors">
+              Elfelejtetted a jelszavad?
             </Link>
           </div>
-        </CardFooter>
-      </Card>
-    </div>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            required
+            className="h-12 rounded-full border-none bg-white/[0.06] px-5 text-zinc-100 focus-visible:ring-[oklch(0.75_0.12_90)]"
+          />
+        </div>
+
+        <Button type="submit" className="mt-2 h-12 w-full rounded-full bg-[oklch(0.75_0.12_90)] font-bold text-[oklch(0.145_0_0)] shadow-lg shadow-[oklch(0.75_0.12_90)]/20 hover:bg-[oklch(0.80_0.14_90)] transition-all">
+          Bejelentkezés
+        </Button>
+      </form>
+
+      <div className="mt-8 text-center text-sm text-zinc-500">
+        Nincs még fiókod?{" "}
+        <Link href="/register" className="font-medium text-[oklch(0.75_0.12_90)] hover:text-[oklch(0.85_0.15_95)] transition-colors">
+          Regisztrálj itt
+        </Link>
+      </div>
+    </AuthLayout>
   )
 }

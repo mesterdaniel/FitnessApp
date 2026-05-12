@@ -66,6 +66,7 @@ export async function sendMessage(conversationId: string, content: string) {
     return { error: 'Az üzenet nem lehet üres' }
   }
 
+  // Insert the message
   const { error } = await supabase
     .from('messages')
     .insert({
@@ -76,6 +77,37 @@ export async function sendMessage(conversationId: string, content: string) {
 
   if (error) {
     return { error: error.message }
+  }
+
+  // Send notification to the other participant
+  try {
+    // 1. Get the other participant
+    const { data: participants } = await supabase
+      .from('conversation_participants')
+      .select('profile_id')
+      .eq('conversation_id', conversationId)
+      .neq('profile_id', user.id)
+      .single()
+
+    if (participants) {
+      // 2. Get sender's name
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single()
+
+      // 3. Create the notification
+      await supabase.from('notifications').insert({
+        user_id: participants.profile_id,
+        title: 'Új üzeneted érkezett',
+        message: `${senderProfile?.full_name || 'Valaki'} üzenetet küldött: "${content.trim().substring(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
+        type: 'chat_message'
+      })
+    }
+  } catch (notifError) {
+    console.error('Failed to send message notification:', notifError)
+    // Don't fail the message send if notification fails
   }
 
   return { success: true }

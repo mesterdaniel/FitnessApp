@@ -45,8 +45,8 @@ export function ProgressView({ logs, weightLogs }: { logs: any[], weightLogs: an
   }))
 
   // Stats
-  const maxWeight = logs.length > 0 ? Math.max(...logs.map(l => l.weight)) : 0
-  const totalLogs = logs.length
+  const maxWeight = rawFilteredLogs.length > 0 ? Math.max(...rawFilteredLogs.map(l => l.weight)) : 0
+  const totalLogs = rawFilteredLogs.length
   const currentWeight = weightLogs.length > 0 ? parseFloat(weightLogs[0].weight_kg) : null
   const previousWeight = weightLogs.length > 1 ? parseFloat(weightLogs[1].weight_kg) : null
   const weightDiff = currentWeight && previousWeight ? currentWeight - previousWeight : null
@@ -76,11 +76,11 @@ export function ProgressView({ logs, weightLogs }: { logs: any[], weightLogs: an
   return (
     <div className="space-y-6">
       <Tabs defaultValue="exercises" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-card border-none rounded-full p-1 h-auto sm:w-fit">
-          <TabsTrigger value="exercises" className="rounded-full px-3 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
+        <TabsList className="grid w-full grid-cols-2 bg-card border-none rounded-full p-1.5 mb-6 h-auto sm:w-fit">
+          <TabsTrigger value="exercises" className="rounded-full px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-8">
             Gyakorlatok
           </TabsTrigger>
-          <TabsTrigger value="weight" className="rounded-full px-3 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
+          <TabsTrigger value="weight" className="rounded-full px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-8">
             Testsúly
           </TabsTrigger>
         </TabsList>
@@ -125,11 +125,13 @@ export function ProgressView({ logs, weightLogs }: { logs: any[], weightLogs: an
               <SelectTrigger className="w-full bg-card border-none shadow-sm rounded-full h-12 sm:w-[220px]">
                 <SelectValue placeholder="Válassz gyakorlatot" />
               </SelectTrigger>
-              <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
-                {exercises.length === 0 && <SelectItem value="empty" disabled>Nincs rögzített gyakorlat</SelectItem>}
-                {exercises.map(ex => (
-                  <SelectItem key={ex} value={ex} className="rounded-xl">{ex}</SelectItem>
-                ))}
+              <SelectContent className="bg-card border border-zinc-800 rounded-2xl shadow-xl overflow-hidden">
+                <div className="p-1">
+                  {exercises.length === 0 && <SelectItem value="empty" disabled>Nincs rögzített gyakorlat</SelectItem>}
+                  {exercises.map(ex => (
+                    <SelectItem key={ex} value={ex} className="rounded-xl cursor-pointer">{ex}</SelectItem>
+                  ))}
+                </div>
               </SelectContent>
             </Select>
 
