@@ -15,7 +15,13 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
+              // Ensure session persistence by setting a long maxAge if not present
+              const cookieOptions = {
+                ...options,
+                maxAge: options.maxAge || 60 * 60 * 24 * 30, // 30 days default
+                path: '/',
+              }
+              cookieStore.set(name, value, cookieOptions)
             })
           } catch (error) {
             // The `setAll` method was called from a Server Component.

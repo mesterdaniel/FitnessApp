@@ -31,9 +31,15 @@ export async function sendPushNotification(userId: string, payload: { title: str
   const results = await Promise.all(
     subscriptions.map(async (sub: any) => {
       try {
+        console.log(`Sending push to subscription for user ${userId}`)
         await webpush.sendNotification(
           sub.subscription,
-          JSON.stringify(payload)
+          JSON.stringify({
+            title: payload.title,
+            body: payload.body,
+            icon: payload.icon || '/icon.png',
+            data: payload.data || {}
+          })
         )
         return { success: true }
       } catch (error: any) {

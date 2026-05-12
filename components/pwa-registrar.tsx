@@ -21,50 +21,10 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export function PwaRegistrar() {
   useEffect(() => {
-    async function registerPWA() {
-      if (!('serviceWorker' in navigator)) return;
-
-      try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
-        
-        // Wait for service worker to be ready
-        await navigator.serviceWorker.ready;
-
-        // Check if push is supported
-        if (!('PushManager' in window)) return;
-
-        const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        if (!publicVapidKey) return;
-
-        // Request notification permission
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') return;
-
-        // Subscribe to push notifications
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-        });
-
-        // Save subscription to the database
-        await savePushSubscription(subscription.toJSON());
-        
-      } catch (error) {
-        console.error('PWA Registration/Subscription failed:', error);
-      }
-    }
-
-    const supabase = createClient()
-    
-    // Listen for auth changes to re-subscribe if needed
-    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-        registerPWA();
-      }
-    });
-
-    return () => {
-      authSubscription.unsubscribe();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch((error) => {
+        console.error('Service Worker registration failed:', error)
+      })
     }
   }, [])
 

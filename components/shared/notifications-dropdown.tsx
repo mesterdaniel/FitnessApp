@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
+import { savePushSubscription } from "@/app/(dashboard)/push/actions"
 
 type Notification = {
   id: string
@@ -19,6 +20,8 @@ type Notification = {
 export function NotificationsDropdown({ userId }: { userId: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [showPushPrompt, setShowPushPrompt] = useState(false)
+  const [subscribing, setSubscribing] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -40,11 +43,15 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
     fetchNotifications()
 
     const channel = supabase
-      .channel('notifications')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, (payload) => {
-        const newNotif = payload.new as Notification
-        setNotifications(prev => [newNotif, ...prev].slice(0, 10))
-        setUnreadCount(prev => prev + 1)
+      .channel('notifications-realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'notifications', 
+        filter: `user_id=eq.${userId}` 
+      }, () => {
+        // Re-fetch on any change to be safe
+        fetchNotifications()
       })
       .subscribe()
 
@@ -52,6 +59,70 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
       supabase.removeChannel(channel)
     }
   }, [userId, supabase])
+
+  useEffect(() => {
+    // Check if we should show the push notification prompt
+    const checkPushStatus = async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
+      
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      
+      if (!subscription && Notification.permission !== 'denied') {
+        setShowPushPrompt(true)
+      }
+    }
+    
+    checkPushStatus()
+  }, [])
+
+  const handleEnablePush = async () => {
+    try {
+      setSubscribing(true)
+      const registration = await navigator.serviceWorker.ready
+      const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+
+      if (!publicVapidKey) {
+        alert('VAPID kulcs hiányzik!')
+        return
+      }
+
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') {
+        alert('Az értesítések engedélyezése szükséges!')
+        return
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
+      })
+
+      const res = await savePushSubscription(subscription.toJSON())
+      if (res.success) {
+        setShowPushPrompt(false)
+        alert('Sikeres feliratkozás!')
+      } else {
+        alert('Hiba a mentéskor: ' + res.error)
+      }
+    } catch (err) {
+      console.error('Push error:', err)
+      alert('Nem sikerült a feliratkozás. Próbáld újra!')
+    } finally {
+      setSubscribing(false)
+    }
+  }
+
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
 
   const markAsRead = async (id: string) => {
     await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id)
@@ -92,11 +163,24 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
       <DropdownMenuContent align="end" className="w-80 bg-card border-none rounded-2xl shadow-xl p-2 z-50">
         <div className="flex items-center justify-between px-3 py-2">
           <h3 className="font-bold text-sm">Értesítések</h3>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-auto text-xs text-primary hover:text-primary/80 hover:bg-primary/10 p-1 px-2 rounded-full">
-              Összes olvasott
-            </Button>
-          )}
+          <div className="flex gap-1">
+            {showPushPrompt && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleEnablePush}
+                disabled={subscribing}
+                className="h-auto text-xs text-orange-400 hover:text-orange-300 hover:bg-orange-400/10 p-1 px-2 rounded-full"
+              >
+                {subscribing ? '...' : 'Push bekapcsolása'}
+              </Button>
+            )}
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-auto text-xs text-primary hover:text-primary/80 hover:bg-primary/10 p-1 px-2 rounded-full">
+                Összes olvasott
+              </Button>
+            )}
+          </div>
         </div>
         <DropdownMenuSeparator className="bg-zinc-800" />
         <div className="max-h-[300px] overflow-y-auto space-y-1 mt-2">
