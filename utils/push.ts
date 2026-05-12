@@ -14,8 +14,8 @@ if (publicKey && privateKey) {
 
 export async function sendPushNotification(userId: string, payload: { title: string, body: string, icon?: string, data?: any }) {
   if (!publicKey || !privateKey) {
-    console.error('VAPID keys not configured')
-    return
+    console.error('VAPID keys not configured! PUBLIC:', !!publicKey, 'PRIVATE:', !!privateKey);
+    return { success: false, error: 'VAPID keys missing' }
   }
 
   const supabase = await createClient()

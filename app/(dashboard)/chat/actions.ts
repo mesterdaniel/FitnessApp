@@ -68,6 +68,7 @@ export async function sendMessage(conversationId: string, content: string) {
   }
 
   // Insert the message
+  console.log('Inserting message into DB...', { conversationId, senderId: user.id });
   const { error } = await supabase
     .from('messages')
     .insert({
@@ -77,8 +78,11 @@ export async function sendMessage(conversationId: string, content: string) {
     })
 
   if (error) {
+    console.error('Failed to insert message:', error);
     return { error: error.message }
   }
+
+  console.log('Message inserted successfully');
 
   // Send notification to the other participant
   try {
@@ -91,6 +95,8 @@ export async function sendMessage(conversationId: string, content: string) {
       .single()
 
     if (participants) {
+      console.log('Found recipient:', participants.profile_id);
+      
       // 2. Get sender's name
       const { data: senderProfile } = await supabase
         .from('profiles')
@@ -98,7 +104,8 @@ export async function sendMessage(conversationId: string, content: string) {
         .eq('id', user.id)
         .single()
 
-      // 3. Create the notification
+      // 3. Create the notification entry in DB
+      console.log('Creating notification entry...');
       await supabase.from('notifications').insert({
         user_id: participants.profile_id,
         title: 'Új üzeneted érkezett',
@@ -106,20 +113,21 @@ export async function sendMessage(conversationId: string, content: string) {
         type: 'chat_message'
       })
 
-      // Send push notification in background
+      // Send push notification
       const pushPayload = {
         title: 'Új üzeneted érkezett',
         body: `${senderProfile?.full_name || 'Valaki'} üzenetet küldött`,
         data: { url: '/chat' }
       };
       
-      // FIRE AND FORGET - Absolutely no blocking
-      setTimeout(() => {
-        sendPushNotification(participants.profile_id, pushPayload).catch(e => console.error('Push failed:', e));
-      }, 0);
+      console.log('Sending push notification...');
+      // We MUST await this on Vercel to ensure the function doesn't terminate early
+      const pushResult = await sendPushNotification(participants.profile_id, pushPayload);
+      console.log('Push notification result:', pushResult);
     }
   } catch (notifError) {
-    console.error('Notification error:', notifError)
+    console.error('Notification logic error:', notifError)
+    // We don't return error here because the message was already sent successfully
   }
 
   return { success: true }
