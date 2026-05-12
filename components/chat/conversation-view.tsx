@@ -49,44 +49,34 @@ export function ConversationView({ conversationId, messages: initialMessages, cu
     const supabase = createClient()
 
     const channel = supabase
-      .channel(`messages:${conversationId}`)
+      .channel(`messages-${conversationId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-        filter: `conversation_id=eq.${conversationId}`,
-      }, async (payload) => {
+      }, (payload) => {
         const newMsg = payload.new as any
-        // Skip our own messages — optimistic update already handles them
-        if (newMsg.sender_id === currentUserId) {
-          // Replace temp message with real one
-          setMessages(prev => {
-            const withoutTemp = prev.filter(m => !m.id.toString().startsWith('temp-'))
-            if (withoutTemp.find(m => m.id === newMsg.id)) return withoutTemp
-            return [...withoutTemp, {
-              ...newMsg,
-              profiles: { full_name: 'Te' }
-            }]
-          })
-          return
-        }
-        // Incoming message from the other user
+        
+        // Only care about messages for THIS conversation
+        if (newMsg.conversation_id !== conversationId) return
+        
+        console.log('New message received via Realtime:', newMsg)
+
         setMessages(prev => {
-          if (prev.find(m => m.id === newMsg.id)) return prev
-          return [...prev, {
+          // Remove any optimistic temp messages for this send
+          const withoutTemp = prev.filter(m => !m.id.toString().startsWith('temp-'))
+          // Avoid duplicates
+          if (withoutTemp.find(m => m.id === newMsg.id)) return withoutTemp
+          
+          return [...withoutTemp, {
             ...newMsg,
-            profiles: { full_name: otherUser.full_name }
+            profiles: newMsg.sender_id === currentUserId ? { full_name: 'Te' } : { full_name: otherUser.full_name }
           }]
         })
-        // Auto-mark incoming messages as read
-        if (newMsg.sender_id !== currentUserId) {
-          await supabase
-            .from('messages')
-            .update({ read_at: new Date().toISOString() })
-            .eq('id', newMsg.id)
-        }
       })
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status)
+      })
 
     return () => {
       supabase.removeChannel(channel)

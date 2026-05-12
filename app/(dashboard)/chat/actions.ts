@@ -106,18 +106,21 @@ export async function sendMessage(conversationId: string, content: string) {
         type: 'chat_message'
       })
 
-      // 4. Send push notification (non-blocking)
-      sendPushNotification(participants.profile_id, {
+    // Send push notification in background
+    if (participants) {
+      const pushPayload = {
         title: 'Új üzeneted érkezett',
-        body: `${senderProfile?.full_name || 'Valaki'} üzenetet küldött: "${content.trim().substring(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
-        data: {
-          url: '/chat'
-        }
-      }).catch(err => console.error('Background push error:', err))
+        body: `${senderProfile?.full_name || 'Valaki'} üzenetet küldött`,
+        data: { url: '/chat' }
+      };
+      
+      // FIRE AND FORGET - Absolutely no blocking
+      setTimeout(() => {
+        sendPushNotification(participants.profile_id, pushPayload).catch(e => console.error('Push failed:', e));
+      }, 0);
     }
   } catch (notifError) {
-    console.error('Failed to send message notification:', notifError)
-    // Don't fail the message send if notification fails
+    console.error('Notification error:', notifError)
   }
 
   return { success: true }
