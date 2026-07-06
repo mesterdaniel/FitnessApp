@@ -20,6 +20,8 @@ function getAge(birthDate?: string | null) {
   return age
 }
 
+import { AddClientDialog } from '@/components/coach/add-client-dialog'
+
 export function CoachClientsView({ clients }: { clients: any[] }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [fitnessLevel, setFitnessLevel] = useState('all')
@@ -42,6 +44,14 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Kliensek</h1>
+          <p className="text-zinc-400">Kezeld a saját klienseidet és áttekintésüket itt.</p>
+        </div>
+        <AddClientDialog />
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-3xl">
           <CardContent className="p-5 flex items-center gap-4">
@@ -125,7 +135,12 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
                           {client.height_cm} cm
                         </div>
                       )}
-                      <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-xs font-bold">
+                      {client.activePass && (
+                        <div className="bg-primary/10 border border-primary/20 text-primary px-3 py-1.5 rounded-full text-xs font-bold" title="Aktív bérlet">
+                          Bérlet: {client.activePass.total_occasions - client.activePass.used_occasions} alk.
+                        </div>
+                      )}
+                      <div className="bg-zinc-800 text-zinc-100 px-3 py-1.5 rounded-full text-xs font-bold">
                         Részletek
                       </div>
                     </div>

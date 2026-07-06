@@ -95,10 +95,24 @@ export default async function ClientWorkoutsPage() {
     return reservedSeats < (workout.capacity || 1)
   })
 
+  // Fetch active pass
+  const { data: activePasses, error: passError } = await supabase
+    .from('client_passes')
+    .select('*')
+    .eq('client_id', user.id)
+    .order('purchase_date', { ascending: true })
+
+  if (passError) {
+    console.error("CLIENT_PASSES_ERROR:", passError)
+  }
+
+  const hasActivePass = activePasses?.some(p => p.used_occasions < p.total_occasions) || false
+
   return (
     <ClientWorkoutsView
       myWorkouts={combinedMyWorkouts}
       availableWorkouts={availableWorkouts}
+      hasActivePass={hasActivePass}
     />
   )
 }

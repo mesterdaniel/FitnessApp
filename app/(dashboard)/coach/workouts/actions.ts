@@ -343,3 +343,29 @@ export async function removeWorkoutExercise(exerciseId: string) {
   revalidatePath('/client/workouts')
   return { success: true }
 }
+
+export async function syncExternalCalendar() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  tomorrow.setHours(10, 0, 0, 0)
+
+  const { error } = await supabase.from('external_calendar_events').insert([
+    {
+      user_id: user.id,
+      event_id: 'dummy-' + Date.now(),
+      title: 'Külső elfoglaltság (Google Naptár)',
+      start_time: tomorrow.toISOString(),
+      end_time: new Date(tomorrow.getTime() + 60 * 60 * 1000).toISOString(),
+      calendar_provider: 'google'
+    }
+  ])
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/coach/workouts')
+  return { success: true }
+}

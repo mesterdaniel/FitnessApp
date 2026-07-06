@@ -48,6 +48,15 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     .order('logged_at', { ascending: false })
     .limit(30)
 
+  // Fetch active pass
+  const { data: passes } = await supabase
+    .from('client_passes')
+    .select('*')
+    .eq('client_id', id)
+    .order('created_at', { ascending: true })
+
+  const activePass = passes?.find(p => p.used_occasions < p.total_occasions) || null
+
   return (
     <div className="max-w-4xl mx-auto pb-24">
       <ClientDetailView 
@@ -55,6 +64,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         workouts={workouts || []} 
         exerciseLogs={exerciseLogs || []}
         weightLogs={weightLogs || []}
+        activePass={activePass}
       />
     </div>
   )

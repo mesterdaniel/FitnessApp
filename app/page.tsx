@@ -17,9 +17,6 @@ export default function Home() {
             </div>
           </div>
 
-          <Button asChild variant="ghost" className="rounded-full hover:bg-card">
-            <Link href="/login">Belépés</Link>
-          </Button>
         </div>
 
         <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">

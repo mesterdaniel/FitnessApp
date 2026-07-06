@@ -14,7 +14,7 @@ export async function login(formData: FormData) {
     redirect('/login?error=Missing_credentials')
   }
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -23,11 +23,13 @@ export async function login(formData: FormData) {
     redirect('/login?error=Invalid_credentials')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role')
-    .eq('id', (await supabase.auth.getUser()).data.user?.id)
+    .eq('id', authData.user.id)
     .single()
+
+  console.log('--- LOGIN DEBUG ---', { userId: authData.user.id, profile, profileError })
 
   revalidatePath('/', 'layout')
   

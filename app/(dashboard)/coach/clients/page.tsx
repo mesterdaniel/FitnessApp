@@ -7,6 +7,7 @@ export default async function CoachClientsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  // Fetch clients from workout history
   const { data: participantData } = await supabase
     .from('workout_participants')
     .select(`
@@ -15,7 +16,17 @@ export default async function CoachClientsPage() {
     `)
     .eq('workouts.trainer_id', user.id)
 
-  const clientIds = [...new Set(participantData?.map((participant) => participant.client_id) || [])]
+  // Fetch clients from explicit connection table
+  const { data: explicitConnections } = await supabase
+    .from('trainer_clients')
+    .select('client_id')
+    .eq('trainer_id', user.id)
+    .eq('status', 'active')
+
+  const clientIdsFromWorkouts = participantData?.map((p) => p.client_id) || []
+  const clientIdsFromConnections = explicitConnections?.map((c) => c.client_id) || []
+  
+  const clientIds = [...new Set([...clientIdsFromWorkouts, ...clientIdsFromConnections])]
 
   let clients: any[] = []
   if (clientIds.length > 0) {
@@ -36,9 +47,18 @@ export default async function CoachClientsPage() {
         .eq('workouts.trainer_id', user.id)
         .eq('status', 'accepted')
 
+      const { data: passes } = await supabase
+        .from('client_passes')
+        .select('*')
+        .eq('client_id', client.id)
+        .order('created_at', { ascending: true })
+
+      const activePass = passes?.find(p => p.used_occasions < p.total_occasions) || null
+
       return {
         ...client,
         workoutCount: workoutCount || 0,
+        activePass: activePass || null,
       }
     })
   )

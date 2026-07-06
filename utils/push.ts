@@ -4,18 +4,21 @@ import { createClient } from '@/utils/supabase/server'
 const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 const privateKey = process.env.VAPID_PRIVATE_KEY
 
-if (publicKey && privateKey) {
-  webpush.setVapidDetails(
-    'mailto:support@fitnessapp.com', // Replace with actual email if needed
-    publicKey,
-    privateKey
-  )
-}
-
 export async function sendPushNotification(userId: string, payload: { title: string, body: string, icon?: string, data?: any }) {
   if (!publicKey || !privateKey) {
     console.error('VAPID keys not configured! PUBLIC:', !!publicKey, 'PRIVATE:', !!privateKey);
     return { success: false, error: 'VAPID keys missing' }
+  }
+
+  try {
+    webpush.setVapidDetails(
+      'mailto:support@fitnessapp.com',
+      publicKey,
+      privateKey
+    )
+  } catch (vapidError) {
+    console.error('Failed to set VAPID details (likely invalid key format):', vapidError);
+    return { success: false, error: 'Invalid VAPID configuration' }
   }
 
   const supabase = await createClient()

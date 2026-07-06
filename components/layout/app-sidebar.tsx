@@ -10,6 +10,7 @@ import {
   MessageCircle,
   Settings,
   Users,
+  Ticket,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -44,6 +45,7 @@ const getNavigation = (role: Role) => {
         { title: "Dashboard", url: "/coach", icon: Home },
         { title: "Kliensek", url: "/coach/clients", icon: Users },
         { title: "Naptár / Edzések", url: "/coach/workouts", icon: Calendar },
+        { title: "Bérletek", url: "/coach/passes", icon: Ticket },
         { title: "Üzenetek", url: "/chat", icon: MessageCircle },
         { title: "Gyakorlatok", url: "/coach/exercises", icon: Dumbbell },
         { title: "Profil", url: "/profile", icon: Settings },

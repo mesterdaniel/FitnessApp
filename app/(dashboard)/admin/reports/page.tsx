@@ -1,6 +1,9 @@
-import { Activity, CalendarClock, CheckCircle2, Clock, TrendingUp, Users } from 'lucide-react'
+import { Activity, CalendarClock, CheckCircle2, Clock, TrendingUp, Users, ArrowRight, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { requireAdminPage } from '@/utils/supabase/admin'
+import { AdminReportsCharts } from '@/components/admin/reports-charts'
+import Link from 'next/link'
 
 type TrainerWorkout = {
   trainer_id: string
@@ -52,56 +55,39 @@ export default async function AdminReportsPage() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5)
 
+  const stats = {
+    completedWorkouts: completedWorkouts || 0,
+    cancelledWorkouts: cancelledWorkouts || 0,
+    unreadMessages: unreadMessages || 0,
+    suspendedUsers: suspendedUsers || 0,
+  }
+
   return (
-    <div className="mx-auto max-w-5xl space-y-6 pb-24">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Riportok es statisztikak</h1>
-        <p className="text-zinc-400">Valos platform aktivitasi mutatok az admin dontesekhez.</p>
+    <div className="mx-auto max-w-6xl space-y-8 pb-24 relative">
+      {/* Decorative Gradients */}
+      <div className="absolute top-20 right-20 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] -z-10 opacity-50 pointer-events-none" />
+
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-1">
+          <div className="inline-flex items-center rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-sm font-medium text-purple-400 mb-2">
+            <BarChart3 className="w-4 h-4 mr-2" /> Analitika
+          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-white drop-shadow-sm">Riportok és Statisztikák</h1>
+          <p className="text-zinc-400 text-lg">Valós idejű platform aktivitási mutatók a vezetői döntésekhez.</p>
+        </div>
+        <Button asChild className="w-fit rounded-full bg-zinc-900 border border-white/10 text-white hover:bg-zinc-800 font-bold px-6 shadow-xl transition-all">
+          <Link href="/admin">Vissza a pultra</Link>
+        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <ReportCard title="Aktiv fiokok" value={activeUsers || 0} icon={Users} />
-        <ReportCard title="Uj fiok ebben a honapban" value={monthlyUsers || 0} icon={TrendingUp} />
-        <ReportCard title="Kovetkezo 7 nap edzesei" value={upcomingWorkouts || 0} icon={CalendarClock} />
-        <ReportCard title="Fuggo foglalasok" value={pendingBookings || 0} icon={Clock} highlight />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 animate-in fade-in zoom-in-95 duration-700 delay-100 fill-mode-both">
+        <ReportCard title="Aktív fiókok" value={activeUsers || 0} icon={Users} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
+        <ReportCard title="Új fiók ebben a hónapban" value={monthlyUsers || 0} icon={TrendingUp} color="text-blue-400" bg="bg-blue-500/10" border="border-blue-500/20" />
+        <ReportCard title="Következő 7 nap edzései" value={upcomingWorkouts || 0} icon={CalendarClock} color="text-purple-400" bg="bg-purple-500/10" border="border-purple-500/20" />
+        <ReportCard title="Függő foglalások" value={pendingBookings || 0} icon={Clock} highlight />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="rounded-3xl border-none bg-card shadow-md">
-          <CardContent className="space-y-4 p-5">
-            <div>
-              <h2 className="text-lg font-bold">Edzes allapotok</h2>
-              <p className="text-sm text-zinc-500">Aktualis havi teljesites es lemorzsolodas.</p>
-            </div>
-            <StatusRow label="Teljesitett edzesek" value={completedWorkouts || 0} icon={CheckCircle2} />
-            <StatusRow label="Lemondott edzesek" value={cancelledWorkouts || 0} icon={Activity} />
-            <StatusRow label="Olvasatlan uzenetek" value={unreadMessages || 0} icon={Clock} />
-            <StatusRow label="Felfuggesztett fiokok" value={suspendedUsers || 0} icon={Users} />
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-3xl border-none bg-card shadow-md">
-          <CardContent className="space-y-4 p-5">
-            <div>
-              <h2 className="text-lg font-bold">Legaktivabb edzok</h2>
-              <p className="text-sm text-zinc-500">Havi edzesszam alapjan.</p>
-            </div>
-            <div className="space-y-2">
-              {topTrainers.map((trainer) => (
-                <div key={trainer.name} className="flex items-center justify-between rounded-2xl bg-background px-4 py-3">
-                  <span className="font-semibold text-zinc-100">{trainer.name}</span>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">{trainer.count}</span>
-                </div>
-              ))}
-              {topTrainers.length === 0 && (
-                <div className="rounded-2xl bg-background px-4 py-6 text-center text-sm text-zinc-500">
-                  Ebben a honapban meg nincs edzoi aktivitasi adat.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminReportsCharts topTrainers={topTrainers} stats={stats} />
     </div>
   )
 }
@@ -111,35 +97,31 @@ function ReportCard({
   value,
   icon: Icon,
   highlight,
+  color = 'text-zinc-400',
+  bg = 'bg-white/5',
+  border = 'border-white/5'
 }: {
   title: string
   value: number
   icon: typeof Users
   highlight?: boolean
+  color?: string
+  bg?: string
+  border?: string
 }) {
   return (
-    <Card className="rounded-3xl border-none bg-card shadow-md">
+    <Card className={`relative overflow-hidden rounded-[2rem] border ${highlight ? 'border-yellow-500/50 bg-yellow-500/10' : `bg-zinc-950/50 ${border}`} backdrop-blur-xl shadow-xl transition-transform hover:scale-[1.02] duration-300`}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-zinc-400">{title}</CardTitle>
-        <Icon className={`h-4 w-4 ${highlight ? 'text-yellow-500' : 'text-zinc-400'}`} />
+        <CardTitle className={`text-sm font-medium ${highlight ? 'text-yellow-500' : 'text-zinc-400'}`}>{title}</CardTitle>
+        <div className={`p-2 rounded-xl ${highlight ? 'bg-yellow-500/20 text-yellow-500' : `${bg} ${color}`}`}>
+          <Icon className="h-4 w-4" />
+        </div>
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${highlight ? 'text-yellow-500' : 'text-zinc-100'}`}>
+        <div className={`text-3xl font-black ${highlight ? 'text-yellow-500' : 'text-white'}`}>
           {value}
         </div>
       </CardContent>
     </Card>
-  )
-}
-
-function StatusRow({ label, value, icon: Icon }: { label: string; value: number; icon: typeof Users }) {
-  return (
-    <div className="flex items-center justify-between rounded-2xl bg-background px-4 py-3">
-      <div className="flex items-center gap-3">
-        <Icon className="h-4 w-4 text-zinc-500" />
-        <span className="text-sm font-semibold text-zinc-200">{label}</span>
-      </div>
-      <span className="text-sm font-bold text-zinc-100">{value}</span>
-    </div>
   )
 }

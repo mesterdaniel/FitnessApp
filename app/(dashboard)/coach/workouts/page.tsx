@@ -44,9 +44,20 @@ export default async function CoachWorkoutsPage() {
     .eq('trainer_id', user.id)
     .order('name', { ascending: true })
 
+  // Fetch external calendar events
+  const { data: externalEvents } = await supabase
+    .from('external_calendar_events')
+    .select('*')
+    .eq('user_id', user.id)
+
   return (
     <div className="max-w-4xl mx-auto pb-24">
-      <CoachWorkoutsView workouts={workouts || []} clients={clients || []} exercises={exercises || []} />
+      <CoachWorkoutsView 
+        workouts={workouts || []} 
+        clients={clients || []} 
+        exercises={exercises || []} 
+        externalEvents={externalEvents || []}
+      />
     </div>
   )
 }

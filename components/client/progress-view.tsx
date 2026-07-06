@@ -13,8 +13,17 @@ import { Label } from "@/components/ui/label"
 import { addExerciseLog, addWeightLog } from "@/app/(dashboard)/client/progress/actions"
 import { useRouter } from "next/navigation"
 
-export function ProgressView({ logs, weightLogs }: { logs: any[], weightLogs: any[] }) {
+const getBadges = (count: number) => {
+  const badges = []
+  if (count >= 1) badges.push({ name: 'Első Lépés', color: 'bg-blue-500/20 text-blue-400', icon: Trophy })
+  if (count >= 10) badges.push({ name: 'Kitartó (10)', color: 'bg-purple-500/20 text-purple-400', icon: Trophy })
+  if (count >= 50) badges.push({ name: 'Mester (50)', color: 'bg-yellow-500/20 text-yellow-500', icon: Trophy })
+  return badges.reverse()
+}
+
+export function ProgressView({ logs, weightLogs, completedWorkoutsCount = 0 }: { logs: any[], weightLogs: any[], completedWorkoutsCount?: number }) {
   const router = useRouter()
+  const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Budapest' })
   const [exerciseDialogOpen, setExerciseDialogOpen] = useState(false)
   const [weightDialogOpen, setWeightDialogOpen] = useState(false)
   const [exerciseError, setExerciseError] = useState("")
@@ -76,12 +85,15 @@ export function ProgressView({ logs, weightLogs }: { logs: any[], weightLogs: an
   return (
     <div className="space-y-6">
       <Tabs defaultValue="exercises" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-card border-none rounded-full p-1.5 mb-6 h-auto sm:w-fit">
-          <TabsTrigger value="exercises" className="rounded-full px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-8">
+        <TabsList className="grid w-full grid-cols-3 bg-card border-none rounded-full p-1.5 mb-6 h-auto sm:w-fit">
+          <TabsTrigger value="exercises" className="rounded-full px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
             Gyakorlatok
           </TabsTrigger>
-          <TabsTrigger value="weight" className="rounded-full px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-8">
+          <TabsTrigger value="weight" className="rounded-full px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
             Testsúly
+          </TabsTrigger>
+          <TabsTrigger value="badges" className="rounded-full px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
+            Kitüntetések
           </TabsTrigger>
         </TabsList>
 
@@ -267,7 +279,7 @@ export function ProgressView({ logs, weightLogs }: { logs: any[], weightLogs: an
                     </div>
                     <div className="space-y-2">
                       <Label className="text-zinc-400 ml-2">Dátum</Label>
-                      <Input name="logged_at" type="date" defaultValue={new Date().toISOString().split('T')[0]} className="bg-background border-none rounded-full h-12 px-4" />
+                      <Input name="logged_at" type="date" defaultValue={todayStr} max={todayStr} className="bg-background border-none rounded-full h-12 px-4" />
                     </div>
                   </div>
                   <DialogFooter className="mt-6 gap-2">
@@ -298,6 +310,42 @@ export function ProgressView({ logs, weightLogs }: { logs: any[], weightLogs: an
               </div>
             </div>
           )}
+        </TabsContent>
+
+        {/* KITÜNTETÉSEK TAB */}
+        <TabsContent value="badges" className="space-y-6 mt-6">
+          <Card className="bg-card border-none shadow-md rounded-3xl">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Trophy className="w-6 h-6 text-yellow-500" />
+                Szerzett Kitüntetéseid
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-4">
+                <div className="flex flex-col items-center justify-center p-4 bg-background rounded-2xl border border-zinc-800 w-28 text-center">
+                  <span className="text-2xl font-bold text-zinc-100">{completedWorkoutsCount}</span>
+                  <span className="text-xs text-zinc-500 mt-1">Elvégzett edzés</span>
+                </div>
+                {getBadges(completedWorkoutsCount).map((badge, idx) => {
+                  const Icon = badge.icon
+                  return (
+                    <div key={idx} className="flex flex-col items-center justify-center p-4 bg-background rounded-2xl border border-zinc-800 w-28 text-center">
+                      <div className={`p-2 rounded-full mb-2 ${badge.color}`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <span className="text-xs font-bold text-zinc-300">{badge.name}</span>
+                    </div>
+                  )
+                })}
+                {completedWorkoutsCount === 0 && (
+                  <div className="flex flex-col justify-center text-sm text-zinc-500 italic p-4">
+                    Végezz el egy edzést az első kitüntetéshez!
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

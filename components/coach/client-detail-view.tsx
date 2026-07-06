@@ -5,15 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, CalendarDays, Scale, Dumbbell, Trophy, TrendingUp, TrendingDown, User } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Scale, Dumbbell, Trophy, TrendingUp, TrendingDown, User, Ticket, Medal } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ProgressChart } from '@/components/client/progress-chart'
 
-export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs }: {
+const getBadges = (count: number) => {
+  const badges = []
+  if (count >= 1) badges.push({ name: 'Első Lépés', color: 'bg-blue-500/20 text-blue-400', icon: Medal })
+  if (count >= 10) badges.push({ name: 'Kitartó (10)', color: 'bg-purple-500/20 text-purple-400', icon: Trophy })
+  if (count >= 50) badges.push({ name: 'Mester (50)', color: 'bg-yellow-500/20 text-yellow-500', icon: Trophy })
+  return badges.reverse()
+}
+
+export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, activePass }: {
   client: any
   workouts: any[]
   exerciseLogs: any[]
   weightLogs: any[]
+  activePass?: any
 }) {
   const router = useRouter()
 
@@ -76,6 +85,18 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs }:
             {age && ` • ${age} éves`}
             {client.height_cm && ` • ${client.height_cm} cm`}
           </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 ml-auto mt-0">
+          {activePass && (
+            <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mr-2 shadow-sm border border-primary/20" title="Aktív bérlet">
+              <Ticket className="w-4 h-4" />
+              <span className="text-sm font-bold">{activePass.total_occasions - activePass.used_occasions} / {activePass.total_occasions} alkalom</span>
+            </div>
+          )}
+          <Button variant="outline" onClick={() => router.push('/coach/passes')} className="rounded-full shadow-md bg-card border-none hover:bg-card">
+            <Ticket className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Bérletek Kezelése</span>
+          </Button>
         </div>
       </div>
 
@@ -149,6 +170,27 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs }:
       {exerciseChartData.length > 1 && (
         <ProgressChart data={exerciseChartData} exerciseName={`Fejlődés: ${selectedExercise}`} />
       )}
+
+      {/* Gamification Badges */}
+      <div>
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-yellow-500" /> Kitüntetések</h2>
+        <div className="flex flex-wrap gap-4">
+          {getBadges(completedWorkouts).map((badge, idx) => {
+            const Icon = badge.icon
+            return (
+              <div key={idx} className="flex flex-col items-center justify-center p-4 bg-background rounded-2xl border border-zinc-800 w-28 text-center">
+                <div className={`p-2 rounded-full mb-2 ${badge.color}`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                <span className="text-xs font-bold text-zinc-300">{badge.name}</span>
+              </div>
+            )
+          })}
+          {completedWorkouts === 0 && (
+            <p className="text-sm text-zinc-500 italic p-4">Még nincs megszerzett kitüntetés.</p>
+          )}
+        </div>
+      </div>
 
       {/* Workout History */}
       <div>

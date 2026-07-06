@@ -7,14 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WorkoutCalendar } from '@/components/shared/workout-calendar'
-import { bookWorkout } from '@/app/(dashboard)/client/workouts/actions'
+import { bookWorkout, cancelWorkoutBooking } from '@/app/(dashboard)/client/workouts/actions'
 
 export function ClientWorkoutsView({
   myWorkouts,
   availableWorkouts,
+  hasActivePass,
 }: {
   myWorkouts: any[]
   availableWorkouts: any[]
+  hasActivePass?: boolean
 }) {
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedDayWorkouts, setSelectedDayWorkouts] = useState<any[]>([])
@@ -143,6 +145,13 @@ export function ClientWorkoutsView({
               <p className="text-sm mt-2 text-zinc-500">Edző: {workout.profiles?.full_name || 'Ismeretlen'}</p>
               {renderWorkoutPlan(workout)}
             </div>
+            <div className="shrink-0 flex sm:flex-col justify-end">
+              <form action={cancelWorkoutBooking.bind(null, workout.id)}>
+                <Button type="submit" variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full font-semibold">
+                  Lemondás
+                </Button>
+              </form>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -231,9 +240,15 @@ export function ClientWorkoutsView({
                     </div>
 
                     <form action={bookWorkout.bind(null, workout.id)}>
-                      <Button type="submit" className="rounded-full bg-primary text-primary-foreground font-bold px-6 shadow-lg shadow-primary/20 w-full sm:w-auto">
-                        <UserPlus className="w-4 h-4 mr-2" /> Jelentkezem
-                      </Button>
+                      {hasActivePass ? (
+                        <Button type="submit" className="rounded-full bg-primary text-primary-foreground font-bold px-6 shadow-lg shadow-primary/20 w-full sm:w-auto">
+                          <UserPlus className="w-4 h-4 mr-2" /> Jelentkezem
+                        </Button>
+                      ) : (
+                        <Button type="button" disabled className="rounded-full font-bold px-6 w-full sm:w-auto">
+                          Nincs aktív bérlet
+                        </Button>
+                      )}
                     </form>
                   </div>
                 </CardContent>

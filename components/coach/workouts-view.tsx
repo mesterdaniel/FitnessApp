@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, CalendarDays, Clock, MapPin, User, Trash2, Users, Check, X, List, Settings2, Link as LinkIcon } from "lucide-react"
-import { addWorkout, updateWorkout, deleteWorkout, updateParticipantStatus } from "@/app/(dashboard)/coach/workouts/actions"
+import { Plus, CalendarDays, Clock, MapPin, User, Trash2, Users, Check, X, List, Settings2, Link as LinkIcon, RefreshCw } from "lucide-react"
+import { addWorkout, updateWorkout, deleteWorkout, updateParticipantStatus, syncExternalCalendar } from "@/app/(dashboard)/coach/workouts/actions"
 import { WorkoutCalendar } from "@/components/shared/workout-calendar"
 
 type PlanExercise = {
@@ -26,8 +26,9 @@ type PlanExercise = {
   is_superset: boolean
 }
 
-export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises }: { workouts: any[], clients: any[], exercises?: any[] }) {
+export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises, externalEvents }: { workouts: any[], clients: any[], exercises?: any[], externalEvents?: any[] }) {
   const [open, setOpen] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editingWorkout, setEditingWorkout] = useState<any>(null)
   const [newPlanExercises, setNewPlanExercises] = useState<PlanExercise[]>([])
@@ -139,24 +140,68 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
     setEditOpen(true)
   }
 
-  // Calendar data
-  const calendarWorkouts = workouts.map(w => ({
-    id: w.id,
-    title: w.title,
-    starts_at: w.starts_at,
-    duration_min: w.duration_min,
-    status: w.status,
-    capacity: w.capacity,
-    participantCount: w.workout_participants?.filter((p: any) => p.status === 'accepted').length || 0,
-  }))
+  const calendarWorkouts = [
+    ...workouts.map(w => ({
+      id: w.id,
+      title: w.title,
+      starts_at: w.starts_at,
+      duration_min: w.duration_min,
+      status: w.status,
+      capacity: w.capacity,
+      participantCount: w.workout_participants?.filter((p: any) => p.status === 'accepted').length || 0,
+      isExternal: false,
+    })),
+    ...(externalEvents || []).map(e => {
+      const d1 = new Date(e.start_time)
+      const d2 = new Date(e.end_time)
+      const diffMin = Math.round((d2.getTime() - d1.getTime()) / 60000)
+      return {
+        id: e.event_id,
+        title: e.title || 'Külső Naptár',
+        starts_at: e.start_time,
+        duration_min: diffMin > 0 ? diffMin : 60,
+        status: 'external',
+        capacity: 1,
+        participantCount: 0,
+        isExternal: true,
+      }
+    })
+  ]
 
   const [selectedDayWorkouts, setSelectedDayWorkouts] = useState<any[]>([])
   const [selectedDate, setSelectedDate] = useState<string>('')
 
   const handleDayClick = (date: string, dayWorkouts: any[]) => {
     setSelectedDate(date)
-    const fullWorkouts = dayWorkouts.map(dw => workouts.find(w => w.id === dw.id)).filter(Boolean)
+    const fullWorkouts = dayWorkouts.map(dw => {
+      const internal = workouts.find(w => w.id === dw.id)
+      if (internal) return internal
+      const external = externalEvents?.find(e => e.event_id === dw.id)
+      if (external) {
+        const d1 = new Date(external.start_time)
+        const d2 = new Date(external.end_time)
+        const diffMin = Math.round((d2.getTime() - d1.getTime()) / 60000)
+        return {
+          id: external.event_id,
+          title: external.title || 'Külső Naptár',
+          starts_at: external.start_time,
+          duration_min: diffMin > 0 ? diffMin : 60,
+          status: 'external',
+          isExternal: true,
+        }
+      }
+      return null
+    }).filter(Boolean)
     setSelectedDayWorkouts(fullWorkouts)
+  }
+
+  const handleSync = async () => {
+    setIsSyncing(true)
+    const res = await syncExternalCalendar()
+    setIsSyncing(false)
+    if (res && res.error) {
+      alert("Hiba a szinkronizálás során: " + res.error)
+    }
   }
 
   const renderPlanBuilder = (mode: 'new' | 'edit') => {
@@ -337,7 +382,12 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-bold tracking-tight">Kiadott edzések</h2>
         
-        <Dialog open={open} onOpenChange={(nextOpen) => {
+        <div className="flex gap-2">
+          <Button onClick={handleSync} disabled={isSyncing} variant="outline" className="rounded-full bg-card border-none hover:bg-card">
+            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+            Szinkron
+          </Button>
+          <Dialog open={open} onOpenChange={(nextOpen) => {
           setOpen(nextOpen)
           if (!nextOpen) {
             setNewPlanExercises([])
@@ -409,6 +459,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Dialog open={editOpen} onOpenChange={(nextOpen) => {
@@ -637,19 +688,21 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
               </h3>
               {selectedDayWorkouts.length > 0 ? (
                 selectedDayWorkouts.map((w: any) => (
-                  <Card key={w.id} className="bg-card border-none shadow-md rounded-3xl cursor-pointer hover:shadow-lg transition-all" onClick={() => openEditModal(w)}>
+                  <Card key={w.id} className={`bg-card border-none shadow-md rounded-3xl ${w.isExternal ? 'opacity-80' : 'cursor-pointer hover:shadow-lg transition-all'}`} onClick={() => !w.isExternal && openEditModal(w)}>
                     <CardContent className="p-4">
                       <h4 className="font-bold text-zinc-100">{w.title}</h4>
                       <p className="text-sm text-zinc-400">
                         {new Date(w.starts_at).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })} • {w.duration_min} perc
                       </p>
-                      <div className="flex items-center gap-2 mt-2 text-xs">
-                        <Users className="w-3 h-3 text-zinc-500" />
-                        <span className="text-zinc-500">{w.workout_participants?.filter((p: any) => p.status === 'accepted').length || 0}/{w.capacity || 1} fő</span>
-                        {w.workout_participants?.some((p: any) => p.status === 'pending') && (
-                          <span className="text-yellow-500 font-bold">• Várakozó jelentkezők</span>
-                        )}
-                      </div>
+                      {!w.isExternal && (
+                        <div className="flex items-center gap-2 mt-2 text-xs">
+                          <Users className="w-3 h-3 text-zinc-500" />
+                          <span className="text-zinc-500">{w.workout_participants?.filter((p: any) => p.status === 'accepted').length || 0}/{w.capacity || 1} fő</span>
+                          {w.workout_participants?.some((p: any) => p.status === 'pending') && (
+                            <span className="text-yellow-500 font-bold">• Várakozó jelentkezők</span>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))

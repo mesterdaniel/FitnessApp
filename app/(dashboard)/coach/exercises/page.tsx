@@ -13,5 +13,11 @@ export default async function CoachExercisesPage() {
     .eq('trainer_id', user.id)
     .order('created_at', { ascending: false })
 
-  return <ExercisesView exercises={exercises || []} />
+  const { data: customCategories } = await supabase
+    .from('exercise_categories')
+    .select('*')
+    .eq('trainer_id', user.id)
+    .order('name', { ascending: true })
+
+  return <ExercisesView exercises={exercises || []} customCategories={customCategories || []} />
 }

@@ -8,8 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
-import { Plus, Dumbbell, Pencil, Trash2, Search, Check } from 'lucide-react'
-import { addExercise, updateExercise, deleteExercise } from '@/app/(dashboard)/coach/exercises/actions'
+import { Plus, Dumbbell, Pencil, Trash2, Search, Check, Settings2 } from 'lucide-react'
+import { addExercise, updateExercise, deleteExercise, addCategory, deleteCategory } from '@/app/(dashboard)/coach/exercises/actions'
 
 const DEFAULT_CATEGORIES = [
   { value: 'strength', label: 'Erő' },
@@ -107,9 +107,10 @@ function MuscleGroupSelector({
   )
 }
 
-export function ExercisesView({ exercises }: { exercises: any[] }) {
+export function ExercisesView({ exercises, customCategories }: { exercises: any[], customCategories: any[] }) {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
   const [editingExercise, setEditingExercise] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState<string>('all')
@@ -118,21 +119,14 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
   const [isCustomCategory, setIsCustomCategory] = useState(false)
   const [customCategory, setCustomCategory] = useState('')
 
-  // Derive all unique categories and muscle groups from existing exercises + defaults
+  // Derive categories from defaults + customCategories
   const categories = useMemo(() => {
-    const existing = new Set<string>()
-    exercises.forEach(e => {
-      if (e.category) existing.add(e.category)
-    })
-    
     const combined = [...DEFAULT_CATEGORIES]
-    existing.forEach(cat => {
-      if (!combined.find(c => c.value === cat)) {
-        combined.push({ value: cat, label: cat }) // For custom ones, value and label are same
-      }
+    customCategories.forEach(c => {
+      combined.push({ value: c.name, label: c.name })
     })
     return combined
-  }, [exercises])
+  }, [customCategories])
 
   const muscleGroups = useMemo(() => {
     const existing = new Set<string>()
@@ -240,20 +234,25 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
           <p className="text-zinc-400">Hozd létre és kezeld a saját gyakorlataidat.</p>
         </div>
 
-        {/* Új gyakorlat gomb */}
-        <Dialog open={open} onOpenChange={(o) => { 
-          setOpen(o); 
-          if (!o) {
-            setNewMuscleGroups([])
-            setIsCustomCategory(false)
-            setCustomCategory('')
-          } 
-        }}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground rounded-full font-bold px-6 shadow-lg shadow-primary/20">
-              <Plus className="w-5 h-5 mr-2" /> Új Gyakorlat
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" className="rounded-full font-bold shadow-md bg-card border-none" onClick={() => setCategoryManagerOpen(true)}>
+            <Settings2 className="w-5 h-5 mr-2" /> Kategóriák
+          </Button>
+
+          {/* Új gyakorlat gomb */}
+          <Dialog open={open} onOpenChange={(o) => { 
+            setOpen(o); 
+            if (!o) {
+              setNewMuscleGroups([])
+              setIsCustomCategory(false)
+              setCustomCategory('')
+            } 
+          }}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary text-primary-foreground rounded-full font-bold px-6 shadow-lg shadow-primary/20">
+                <Plus className="w-5 h-5 mr-2" /> Új Gyakorlat
+              </Button>
+            </DialogTrigger>
           <DialogContent className="bg-card border-none shadow-2xl rounded-[2rem] sm:max-w-xl">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">Új Gyakorlat</DialogTitle>
@@ -320,6 +319,59 @@ export function ExercisesView({ exercises }: { exercises: any[] }) {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Kategória Menedzser Dialog */}
+        <Dialog open={categoryManagerOpen} onOpenChange={setCategoryManagerOpen}>
+          <DialogContent className="bg-card border-none shadow-2xl rounded-[2rem] sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Kategóriák Kezelése</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <form 
+                action={async (formData) => {
+                  const name = formData.get('name') as string
+                  const res = await addCategory(name)
+                  if (res?.error) alert(res.error)
+                  else (document.getElementById('new-cat-input') as HTMLInputElement).value = ''
+                }}
+                className="flex gap-2"
+              >
+                <Input id="new-cat-input" name="name" placeholder="Új kategória neve..." required className="bg-background border-none rounded-full h-11 px-4 flex-1" />
+                <Button type="submit" className="rounded-full h-11 px-6">Hozzáadás</Button>
+              </form>
+              
+              <div className="space-y-2 mt-4 max-h-[300px] overflow-y-auto">
+                <p className="text-sm font-semibold text-zinc-400">Saját kategóriáid</p>
+                {customCategories.length === 0 ? (
+                  <p className="text-sm text-zinc-500 py-2">Még nincs saját kategóriád.</p>
+                ) : (
+                  customCategories.map(c => (
+                    <div key={c.id} className="flex items-center justify-between rounded-2xl bg-background px-4 py-2.5">
+                      <span className="text-zinc-100 font-medium">{c.name}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={async () => {
+                          if (confirm(`Biztosan törlöd a(z) "${c.name}" kategóriát?`)) {
+                            const res = await deleteCategory(c.name)
+                            if (res?.error) alert(res.error)
+                          }
+                        }}
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-full"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button onClick={() => setCategoryManagerOpen(false)} className="rounded-full w-full bg-background hover:bg-zinc-800 text-foreground border-none">Bezárás</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
       </div>
 
       {/* Keresés és szűrés */}

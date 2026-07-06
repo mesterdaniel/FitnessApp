@@ -91,3 +91,46 @@ export async function deleteExercise(id: string) {
   revalidatePath('/coach/exercises')
   return { success: true }
 }
+
+export async function addCategory(name: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  if (!name || !name.trim()) return { error: 'A kategória neve kötelező!' }
+
+  const { error } = await supabase
+    .from('exercise_categories')
+    .insert({ trainer_id: user.id, name: name.trim() })
+
+  if (error) {
+    if (error.code === '23505') {
+      return { error: 'Ez a kategória már létezik.' }
+    }
+    return { error: error.message }
+  }
+
+  revalidatePath('/coach/exercises')
+  return { success: true }
+}
+
+export async function deleteCategory(name: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { error } = await supabase
+    .from('exercise_categories')
+    .delete()
+    .eq('name', name)
+    .eq('trainer_id', user.id)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/coach/exercises')
+  return { success: true }
+}

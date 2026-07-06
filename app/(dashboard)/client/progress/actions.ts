@@ -43,7 +43,8 @@ export async function addWeightLog(formData: FormData) {
 
   const rawWeight = String(formData.get('weight_kg') || '').replace(',', '.').trim()
   const weight_kg = parseFloat(rawWeight)
-  const logged_at = String(formData.get('logged_at') || new Date().toISOString().split('T')[0])
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Budapest' })
+  const logged_at = String(formData.get('logged_at') || today)
 
   if (isNaN(weight_kg) || weight_kg <= 0) {
     return { error: 'Ervenytelen suly' }
@@ -51,6 +52,10 @@ export async function addWeightLog(formData: FormData) {
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(logged_at)) {
     return { error: 'Ervenytelen datum' }
+  }
+
+  if (logged_at > today) {
+    return { error: 'Nem rögzíthetsz testsúlyt jövőbeli dátumra.' }
   }
 
   const { error: deleteError } = await supabase
@@ -75,7 +80,6 @@ export async function addWeightLog(formData: FormData) {
     return { error: error.message }
   }
 
-  const today = new Date().toISOString().split('T')[0]
   if (logged_at <= today) {
     await supabase
       .from('profiles')

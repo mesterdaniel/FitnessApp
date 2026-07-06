@@ -1,7 +1,17 @@
 import { createClient } from '@/utils/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dumbbell, CalendarCheck, MessageSquare } from 'lucide-react'
+import { Dumbbell, CalendarCheck, MessageSquare, Ticket, Zap, Trophy, Medal } from 'lucide-react'
 import Link from 'next/link'
+import { bookWorkout } from '@/app/(dashboard)/client/workouts/actions'
+import { Button } from '@/components/ui/button'
+
+const getBadges = (count: number) => {
+  const badges = []
+  if (count >= 1) badges.push({ name: 'Első Lépés', color: 'bg-blue-500/20 text-blue-400', icon: Medal })
+  if (count >= 10) badges.push({ name: 'Kitartó (10)', color: 'bg-purple-500/20 text-purple-400', icon: Trophy })
+  if (count >= 50) badges.push({ name: 'Mester (50)', color: 'bg-yellow-500/20 text-yellow-500', icon: Trophy })
+  return badges.reverse()
+}
 
 export default async function ClientDashboardPage() {
   const supabase = await createClient()
@@ -43,6 +53,32 @@ export default async function ClientDashboardPage() {
       .is('read_at', null)
     unreadMessagesCount = count || 0
   }
+
+  // Fetch active pass
+  const { data: passes } = await supabase
+    .from('client_passes')
+    .select('total_occasions, used_occasions')
+    .eq('client_id', user.id)
+    .order('purchase_date', { ascending: true })
+
+  const activePass = passes?.find(p => p.used_occasions < p.total_occasions) || null
+
+  // Next available workout for quick rebook
+  const { data: nextAvailableWorkout } = await supabase
+    .from('workouts')
+    .select('id, title, starts_at')
+    .eq('status', 'available')
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  // Fetch past workouts for gamification
+  const { count: completedWorkoutsCount } = await supabase
+    .from('workout_participants')
+    .select('*', { count: 'exact', head: true })
+    .eq('client_id', user.id)
+    .eq('status', 'accepted')
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24">
@@ -96,6 +132,89 @@ export default async function ClientDashboardPage() {
             </CardContent>
           </Card>
         </Link>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="bg-card border-none shadow-md rounded-3xl">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Ticket className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold">Aktív Bérlet</h3>
+                {activePass ? (
+                  <p className="text-sm text-zinc-400">Még {activePass.total_occasions - activePass.used_occasions} alkalom felhasználható.</p>
+                ) : (
+                  <p className="text-sm text-zinc-400">Nincs aktív bérleted.</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-none shadow-md rounded-3xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Zap className="h-24 w-24 text-primary" />
+          </div>
+          <CardContent className="p-6 relative z-10">
+            <div className="flex flex-col h-full justify-between gap-4">
+              <div>
+                <h3 className="font-bold mb-1">Gyors Jelentkezés</h3>
+                {nextAvailableWorkout ? (
+                  <p className="text-sm text-zinc-400">
+                    {new Date(nextAvailableWorkout.starts_at).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} - {nextAvailableWorkout.title}
+                  </p>
+                ) : (
+                  <p className="text-sm text-zinc-400">Nincs elérhető edzés.</p>
+                )}
+              </div>
+              {nextAvailableWorkout && (
+                <form action={bookWorkout.bind(null, nextAvailableWorkout.id)}>
+                  {activePass ? (
+                    <Button type="submit" size="sm" className="w-fit rounded-full shadow-lg shadow-primary/20">
+                      <Zap className="h-4 w-4 mr-2" /> 1-Kattintásos Foglalás
+                    </Button>
+                  ) : (
+                    <Button type="button" disabled size="sm" className="w-fit rounded-full">
+                      Nincs aktív bérlet
+                    </Button>
+                  )}
+                </form>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-1">
+        <Card className="bg-card border-none shadow-md rounded-3xl">
+          <CardContent className="p-6">
+            <h3 className="font-bold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-yellow-500" /> Kitüntetéseid</h3>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col items-center justify-center p-4 bg-background rounded-2xl border border-zinc-800 w-28 text-center">
+                <span className="text-2xl font-bold text-zinc-100">{completedWorkoutsCount || 0}</span>
+                <span className="text-xs text-zinc-500 mt-1">Elvégzett edzés</span>
+              </div>
+              {getBadges(completedWorkoutsCount || 0).map((badge, idx) => {
+                const Icon = badge.icon
+                return (
+                  <div key={idx} className="flex flex-col items-center justify-center p-4 bg-background rounded-2xl border border-zinc-800 w-28 text-center">
+                    <div className={`p-2 rounded-full mb-2 ${badge.color}`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <span className="text-xs font-bold text-zinc-300">{badge.name}</span>
+                  </div>
+                )
+              })}
+              {(!completedWorkoutsCount || completedWorkoutsCount === 0) && (
+                <div className="flex flex-col justify-center text-sm text-zinc-500 italic p-4">
+                  Végezz el egy edzést az első kitüntetéshez!
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <h2 className="text-xl font-bold tracking-tight mt-8 mb-4">Következő edzéseim</h2>

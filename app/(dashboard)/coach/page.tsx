@@ -9,11 +9,26 @@ export default async function CoachDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Fetch stats for the coach
-  const { count: clientsCount } = await supabase
-    .from('profiles')
-    .select('*', { count: 'exact', head: true })
-    .eq('role', 'client')
+  // Fetch clients from workout history to count actual clients
+  const { data: participantData } = await supabase
+    .from('workout_participants')
+    .select(`
+      client_id,
+      workouts!inner(trainer_id)
+    `)
+    .eq('workouts.trainer_id', user.id)
+
+  // Fetch clients from explicit connection table
+  const { data: explicitConnections } = await supabase
+    .from('trainer_clients')
+    .select('client_id')
+    .eq('trainer_id', user.id)
+    .eq('status', 'active')
+
+  const clientIdsFromWorkouts = participantData?.map((p) => p.client_id) || []
+  const clientIdsFromConnections = explicitConnections?.map((c) => c.client_id) || []
+  const clientIds = [...new Set([...clientIdsFromWorkouts, ...clientIdsFromConnections])]
+  const clientsCount = clientIds.length
 
   // Upcoming workouts with participants
   const { data: upcomingWorkouts } = await supabase

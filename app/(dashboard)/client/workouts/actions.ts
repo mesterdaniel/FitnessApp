@@ -36,13 +36,30 @@ export async function bookWorkout(workoutId: string, _formData: FormData): Promi
 
   if (count !== null && count >= workout.capacity) return
 
+  // Find an active pass
+  const { data: passes, error: passesError } = await supabase
+    .from('client_passes')
+    .select('id, total_occasions, used_occasions')
+    .eq('client_id', user.id)
+    .order('purchase_date', { ascending: true })
+
+  console.log('BOOKING DEBUG passes:', passes, 'error:', passesError, 'user_id:', user.id);
+
+  const activePass = passes?.find(p => p.used_occasions < p.total_occasions)
+  const passId = activePass?.id || null
+
+  if (!passId) {
+    return { error: 'Nincs aktív bérleted' } as any
+  }
+
   // Create a pending participation
   await supabase
     .from('workout_participants')
     .upsert({ 
       workout_id: workoutId,
       client_id: user.id,
-      status: 'pending'
+      status: 'pending',
+      pass_id: passId
     }, { onConflict: 'workout_id,client_id' })
 
   // Notify the coach
@@ -54,6 +71,28 @@ export async function bookWorkout(workoutId: string, _formData: FormData): Promi
     message: `${profile?.full_name || 'Egy kliens'} jelentkezett a(z) "${workout.title}" edzésedre.`,
     type: 'new_booking'
   })
+
+  revalidatePath('/client/workouts')
+  revalidatePath('/client')
+  revalidatePath('/coach/workouts')
+}
+
+export async function cancelWorkoutBooking(workoutId: string): Promise<void> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { error } = await supabase
+    .from('workout_participants')
+    .delete()
+    .eq('workout_id', workoutId)
+    .eq('client_id', user.id)
+
+  if (error) {
+    console.error(error.message)
+    return
+  }
 
   revalidatePath('/client/workouts')
   revalidatePath('/client')
