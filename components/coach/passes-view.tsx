@@ -99,26 +99,26 @@ export function PassesView({ clients, passes }: { clients: any[], passes: any[] 
   const renderClientRow = (item: any, type: 'active' | 'expired' | 'nopass') => {
     const { client, pass } = item
     return (
-      <div key={client.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 hover:bg-zinc-900/30 transition-colors border-b border-zinc-800/50 last:border-0">
+      <div key={client.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 hover:bg-card/30 transition-colors border-b border-zinc-800/50 last:border-0">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex shrink-0 items-center justify-center text-primary font-bold">
+          <div className="w-10 h-10 rounded-md bg-primary/10 flex shrink-0 items-center justify-center text-primary font-bold">
             {client.full_name?.[0]?.toUpperCase() || <User className="w-5 h-5" />}
           </div>
           <div className="min-w-0">
-            <h3 className="font-semibold text-zinc-200 truncate">{client.full_name || 'Ismeretlen Kliens'}</h3>
+            <h3 className="font-semibold text-foreground truncate">{client.full_name || 'Ismeretlen Kliens'}</h3>
             {pass ? (
               <div className="flex flex-wrap items-center gap-3 mt-1 text-xs">
-                <div className={`flex items-center gap-1 font-bold ${type === 'active' ? 'text-primary' : 'text-zinc-500'}`}>
+                <div className={`flex items-center gap-1 font-bold ${type === 'active' ? 'text-primary' : 'text-muted-foreground'}`}>
                   <Ticket className="w-3.5 h-3.5" />
                   {pass.used_occasions} / {pass.total_occasions} alkalom
                 </div>
-                <div className="text-zinc-500 flex items-center gap-1">
+                <div className="text-muted-foreground flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
                   {new Date(pass.purchase_date).toLocaleDateString('hu-HU', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-zinc-500 mt-1">Még sosem volt bérlete</p>
+              <p className="text-xs text-muted-foreground mt-1">Még sosem volt bérlete</p>
             )}
           </div>
         </div>
@@ -154,13 +154,13 @@ export function PassesView({ clients, passes }: { clients: any[], passes: any[] 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Bérletek Kezelése</h1>
-          <p className="text-zinc-400">Klienseid bérleteinek gyors és átlátható kezelése.</p>
+          <p className="text-muted-foreground">Klienseid bérleteinek gyors és átlátható kezelése.</p>
         </div>
         <AddClientDialog />
       </div>
 
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input 
           type="text" 
           placeholder="Keresés név alapján..." 
@@ -175,23 +175,23 @@ export function PassesView({ clients, passes }: { clients: any[], passes: any[] 
           <TabsTrigger value="active" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
             Aktív ({activeClients.length})
           </TabsTrigger>
-          <TabsTrigger value="expired" className="rounded-full data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-xs sm:text-sm">
+          <TabsTrigger value="expired" className="rounded-full data-[state=active]:bg-zinc-800 data-[state=active]:text-foreground text-xs sm:text-sm">
             Lejárt ({expiredClients.length})
           </TabsTrigger>
-          <TabsTrigger value="nopass" className="rounded-full data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-xs sm:text-sm">
+          <TabsTrigger value="nopass" className="rounded-full data-[state=active]:bg-zinc-800 data-[state=active]:text-foreground text-xs sm:text-sm">
             Nincs Bérlet ({noPassClients.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active">
-          <Card className="bg-card border-none shadow-md rounded-3xl overflow-hidden">
+          <Card className="bg-card border-none shadow-md rounded-lg overflow-hidden">
             <CardContent className="p-0">
               {activeClients.length > 0 ? (
                 <div className="flex flex-col">
                   {activeClients.map(item => renderClientRow(item, 'active'))}
                 </div>
               ) : (
-                <div className="p-12 text-center text-zinc-500">
+                <div className="p-12 text-center text-muted-foreground">
                   <Ticket className="w-12 h-12 mx-auto mb-4 opacity-20" />
                   <p>Nincs aktív bérlettel rendelkező kliensed a keresés alapján.</p>
                 </div>
@@ -201,14 +201,14 @@ export function PassesView({ clients, passes }: { clients: any[], passes: any[] 
         </TabsContent>
 
         <TabsContent value="expired">
-          <Card className="bg-card border-none shadow-md rounded-3xl overflow-hidden">
+          <Card className="bg-card border-none shadow-md rounded-lg overflow-hidden">
             <CardContent className="p-0">
               {expiredClients.length > 0 ? (
                 <div className="flex flex-col">
                   {expiredClients.map(item => renderClientRow(item, 'expired'))}
                 </div>
               ) : (
-                <div className="p-12 text-center text-zinc-500">
+                <div className="p-12 text-center text-muted-foreground">
                   <Ticket className="w-12 h-12 mx-auto mb-4 opacity-20" />
                   <p>Nincs lejárt bérlettel rendelkező kliensed a keresés alapján.</p>
                 </div>
@@ -218,14 +218,14 @@ export function PassesView({ clients, passes }: { clients: any[], passes: any[] 
         </TabsContent>
 
         <TabsContent value="nopass">
-          <Card className="bg-card border-none shadow-md rounded-3xl overflow-hidden">
+          <Card className="bg-card border-none shadow-md rounded-lg overflow-hidden">
             <CardContent className="p-0">
               {noPassClients.length > 0 ? (
                 <div className="flex flex-col">
                   {noPassClients.map(item => renderClientRow(item, 'nopass'))}
                 </div>
               ) : (
-                <div className="p-12 text-center text-zinc-500">
+                <div className="p-12 text-center text-muted-foreground">
                   <User className="w-12 h-12 mx-auto mb-4 opacity-20" />
                   <p>Minden kliensednek van már bérlete a keresés alapján.</p>
                 </div>
@@ -237,7 +237,7 @@ export function PassesView({ clients, passes }: { clients: any[], passes: any[] 
 
       {/* New Pass Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="rounded-3xl border-none bg-card sm:max-w-[425px]">
+        <DialogContent className="rounded-lg border-none bg-card sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Új bérlet rögzítése</DialogTitle>
           </DialogHeader>
@@ -251,8 +251,8 @@ export function PassesView({ clients, passes }: { clients: any[], passes: any[] 
                 )}
                 
                 <div className="grid gap-2">
-                  <p className="text-sm text-zinc-400">
-                    Kliens: <strong className="text-zinc-100">{clients.find(c => c.id === selectedClientId)?.full_name}</strong>
+                  <p className="text-sm text-muted-foreground">
+                    Kliens: <strong className="text-foreground">{clients.find(c => c.id === selectedClientId)?.full_name}</strong>
                   </p>
                 </div>
                 

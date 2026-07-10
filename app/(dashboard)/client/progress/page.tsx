@@ -42,7 +42,7 @@ export default async function ClientProgressPage() {
     <div className="space-y-6 max-w-4xl mx-auto pb-24">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Fejlődés & Statisztikák</h1>
-        <p className="text-zinc-400">Kövesd nyomon az eredményeidet és a testsúlyodat.</p>
+        <p className="text-muted-foreground">Kövesd nyomon az eredményeidet és a testsúlyodat.</p>
       </div>
 
       <ProgressView logs={logs} weightLogs={weightLogs} completedWorkoutsCount={completedWorkoutsCount} />

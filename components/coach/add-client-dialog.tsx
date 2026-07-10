@@ -61,7 +61,7 @@ export function AddClientDialog() {
           <UserPlus className="w-4 h-4 mr-2" /> Kliens Hozzáadása
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-3xl border-none bg-card sm:max-w-[425px]">
+      <DialogContent className="rounded-lg border-none bg-card sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Új Kliens Felvétele</DialogTitle>
         </DialogHeader>
@@ -69,7 +69,7 @@ export function AddClientDialog() {
         <div className="py-4 space-y-4">
           <form onSubmit={handleSearch} className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -91,9 +91,9 @@ export function AddClientDialog() {
           <div className="space-y-2 mt-4 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
             {results.length > 0 ? (
               results.map((client) => (
-                <div key={client.id} className="flex items-center justify-between p-3 rounded-2xl bg-zinc-900/50 border border-zinc-800">
+                <div key={client.id} className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-zinc-800">
                   <div className="min-w-0">
-                    <div className="font-semibold text-zinc-200 truncate">{client.full_name}</div>
+                    <div className="font-semibold text-foreground truncate">{client.full_name}</div>
                   </div>
                   <Button 
                     size="sm" 
@@ -107,7 +107,7 @@ export function AddClientDialog() {
                 </div>
               ))
             ) : query.length > 0 && !isSearching ? (
-              <div className="text-center p-4 text-zinc-500 text-sm">Nincs találat a keresésre.</div>
+              <div className="text-center p-4 text-muted-foreground text-sm">Nincs találat a keresésre.</div>
             ) : null}
           </div>
         </div>

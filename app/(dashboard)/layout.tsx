@@ -26,13 +26,13 @@ export default async function DashboardLayout({
     <SidebarProvider>
       <AppSidebar role={role} userId={user.id} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-zinc-800 bg-zinc-950 px-4">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-zinc-800 bg-background px-4">
           <SidebarTrigger />
           <div className="flex items-center gap-4">
             <NotificationsDropdown userId={user.id} />
           </div>
         </header>
-        <main className="flex-1 bg-zinc-950 p-4 md:p-6 text-zinc-100">
+        <main className="flex-1 bg-background p-4 md:p-6 text-foreground">
           {children}
         </main>
       </SidebarInset>

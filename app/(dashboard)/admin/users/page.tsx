@@ -50,7 +50,7 @@ export default async function AdminUsersPage({
     <div className="mx-auto max-w-5xl space-y-6 pb-24">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Felhasznalok kezelese</h1>
-        <p className="text-zinc-400">
+        <p className="text-muted-foreground">
           Szerepkorok, fiokstatuszok es admin muveletek kovetese egy helyen.
         </p>
       </div>
@@ -62,28 +62,28 @@ export default async function AdminUsersPage({
         currentUserId={user!.id}
       />
 
-      <Card className="rounded-3xl border-none bg-card shadow-md">
+      <Card className="rounded-lg border-none bg-card shadow-md">
         <CardContent className="space-y-4 p-5">
           <div>
             <h2 className="text-lg font-bold">Legutobbi admin muveletek</h2>
-            <p className="text-sm text-zinc-500">Audit log a szerepkor es statusz valtoztatasokhoz.</p>
+            <p className="text-sm text-muted-foreground">Audit log a szerepkor es statusz valtoztatasokhoz.</p>
           </div>
           <div className="space-y-2">
             {((auditLogs || []) as AuditLog[]).map((log) => (
-              <div key={log.id} className="rounded-2xl bg-background px-4 py-3 text-sm">
+              <div key={log.id} className="rounded-lg bg-background px-4 py-3 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold text-zinc-200">{log.action}</span>
-                  <span className="text-xs text-zinc-500">
+                  <span className="font-semibold text-foreground">{log.action}</span>
+                  <span className="text-xs text-muted-foreground">
                     {new Date(log.created_at).toLocaleString('hu-HU')}
                   </span>
                 </div>
-                <p className="mt-1 text-zinc-500">
+                <p className="mt-1 text-muted-foreground">
                   Cel: {log.target_user_id?.slice(0, 8) || 'n/a'} - {JSON.stringify(log.metadata)}
                 </p>
               </div>
             ))}
             {(!auditLogs || auditLogs.length === 0) && (
-              <div className="rounded-2xl bg-background px-4 py-6 text-center text-sm text-zinc-500">
+              <div className="rounded-lg bg-background px-4 py-6 text-center text-sm text-muted-foreground">
                 Meg nincs audit bejegyzes.
               </div>
             )}

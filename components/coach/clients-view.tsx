@@ -47,13 +47,13 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Kliensek</h1>
-          <p className="text-zinc-400">Kezeld a saját klienseidet és áttekintésüket itt.</p>
+          <p className="text-muted-foreground">Kezeld a saját klienseidet és áttekintésüket itt.</p>
         </div>
         <AddClientDialog />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-3xl">
+        <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-lg">
           <CardContent className="p-5 flex items-center gap-4">
             <Users className="h-8 w-8 opacity-80" />
             <div>
@@ -62,12 +62,12 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-card border-none rounded-3xl shadow-md">
+        <Card className="bg-card border-none rounded-lg shadow-md">
           <CardContent className="p-5 flex items-center gap-4">
-            <Dumbbell className="h-8 w-8 text-zinc-500" />
+            <Dumbbell className="h-8 w-8 text-muted-foreground" />
             <div>
-              <div className="text-2xl font-bold text-zinc-100">{clients.reduce((sum, client) => sum + client.workoutCount, 0)}</div>
-              <p className="text-xs text-zinc-500">Összes elfogadott edzés</p>
+              <div className="text-2xl font-bold text-foreground">{clients.reduce((sum, client) => sum + client.workoutCount, 0)}</div>
+              <p className="text-xs text-muted-foreground">Összes elfogadott edzés</p>
             </div>
           </CardContent>
         </Card>
@@ -75,7 +75,7 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
@@ -87,7 +87,7 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
           <SelectTrigger className="bg-card border-none rounded-full h-12 px-4 w-full sm:w-56">
             <SelectValue placeholder="Edzettségi szint" />
           </SelectTrigger>
-          <SelectContent className="bg-card border border-zinc-800 rounded-2xl shadow-xl overflow-hidden">
+          <SelectContent className="bg-card border border-zinc-800 rounded-lg shadow-xl overflow-hidden">
             <div className="p-1">
               <SelectItem value="all" className="rounded-xl cursor-pointer">Összes szint</SelectItem>
               {fitnessLevels.map((level) => (
@@ -105,7 +105,7 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
 
             return (
               <Link key={client.id} href={`/coach/clients/${client.id}`}>
-                <Card className="bg-card border-none shadow-md rounded-3xl overflow-hidden cursor-pointer hover:bg-card/80 hover:scale-[1.01] transition-all mb-4">
+                <Card className="bg-card border-none shadow-md rounded-lg overflow-hidden cursor-pointer hover:bg-card/80 hover:scale-[1.01] transition-all mb-4">
                   <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-center gap-4">
                       <Avatar className="h-12 w-12 shrink-0 border border-primary/20">
@@ -115,8 +115,8 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <h3 className="break-words font-semibold leading-tight text-zinc-100">{client.full_name || 'Névtelen kliens'}</h3>
-                        <p className="break-words text-sm text-zinc-500">
+                        <h3 className="break-words font-semibold leading-tight text-foreground">{client.full_name || 'Névtelen kliens'}</h3>
+                        <p className="break-words text-sm text-muted-foreground">
                           {client.fitness_level && `${client.fitness_level} - `}
                           {age ? `${age} éves - ` : ''}
                           {client.workoutCount} edzés
@@ -125,13 +125,13 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
                     </div>
                     <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                       {client.weight_kg && (
-                        <div className="flex items-center gap-1 bg-background px-3 py-1.5 rounded-full text-xs text-zinc-400">
+                        <div className="flex items-center gap-1 bg-background px-3 py-1.5 rounded-full text-xs text-muted-foreground">
                           <Scale className="w-3 h-3" />
                           {client.weight_kg} kg
                         </div>
                       )}
                       {client.height_cm && (
-                        <div className="bg-background px-3 py-1.5 rounded-full text-xs text-zinc-400">
+                        <div className="bg-background px-3 py-1.5 rounded-full text-xs text-muted-foreground">
                           {client.height_cm} cm
                         </div>
                       )}
@@ -140,7 +140,7 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
                           Bérlet: {client.activePass.total_occasions - client.activePass.used_occasions} alk.
                         </div>
                       )}
-                      <div className="bg-zinc-800 text-zinc-100 px-3 py-1.5 rounded-full text-xs font-bold">
+                      <div className="bg-zinc-800 text-foreground px-3 py-1.5 rounded-full text-xs font-bold">
                         Részletek
                       </div>
                     </div>
@@ -150,11 +150,11 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
             )
           })
         ) : (
-          <Card className="bg-card border-none border-dashed rounded-3xl">
+          <Card className="bg-card border-none border-dashed rounded-lg">
             <CardContent className="flex flex-col items-center justify-center p-16 text-center">
               <Users className="h-16 w-16 text-zinc-700 mb-4" />
-              <h2 className="text-xl font-bold text-zinc-300 mb-2">Nincs találat</h2>
-              <p className="text-zinc-500 max-w-md">
+              <h2 className="text-xl font-bold text-muted-foreground mb-2">Nincs találat</h2>
+              <p className="text-muted-foreground max-w-md">
                 Próbálj másik keresést vagy szűrőt.
               </p>
             </CardContent>

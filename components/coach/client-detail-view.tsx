@@ -80,7 +80,7 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
         </Avatar>
         <div className="min-w-0">
           <h1 className="break-words text-2xl font-bold leading-tight">{client.full_name || 'Névtelen Kliens'}</h1>
-          <p className="break-words text-sm text-zinc-500">
+          <p className="break-words text-sm text-muted-foreground">
             {client.fitness_level && `${client.fitness_level} szint`}
             {age && ` • ${age} éves`}
             {client.height_cm && ` • ${client.height_cm} cm`}
@@ -102,42 +102,42 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
 
       {/* Bio / Goals */}
       {client.bio && (
-        <Card className="bg-card border-none rounded-3xl shadow-md">
+        <Card className="bg-card border-none rounded-lg shadow-md">
           <CardContent className="p-5">
             <h3 className="font-bold mb-2 flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Célok & Magamról</h3>
-            <p className="text-zinc-400 text-sm whitespace-pre-wrap">{client.bio}</p>
+            <p className="text-muted-foreground text-sm whitespace-pre-wrap">{client.bio}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-3xl">
+        <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-lg">
           <CardContent className="p-4 text-center">
             <CalendarDays className="h-5 w-5 mx-auto opacity-80 mb-1" />
             <div className="text-2xl font-bold">{totalWorkouts}</div>
             <p className="text-xs opacity-80">Összes edzés</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border-none rounded-3xl shadow-md">
+        <Card className="bg-card border-none rounded-lg shadow-md">
           <CardContent className="p-4 text-center">
-            <Dumbbell className="h-5 w-5 mx-auto text-zinc-500 mb-1" />
-            <div className="text-2xl font-bold text-zinc-100">{completedWorkouts}</div>
-            <p className="text-xs text-zinc-500">Elvégzett</p>
+            <Dumbbell className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
+            <div className="text-2xl font-bold text-foreground">{completedWorkouts}</div>
+            <p className="text-xs text-muted-foreground">Elvégzett</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border-none rounded-3xl shadow-md">
+        <Card className="bg-card border-none rounded-lg shadow-md">
           <CardContent className="p-4 text-center">
-            <Scale className="h-5 w-5 mx-auto text-zinc-500 mb-1" />
-            <div className="text-2xl font-bold text-zinc-100">{currentWeight ? `${currentWeight} kg` : '-'}</div>
-            <p className="text-xs text-zinc-500">Testsúly</p>
+            <Scale className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
+            <div className="text-2xl font-bold text-foreground">{currentWeight ? `${currentWeight} kg` : '-'}</div>
+            <p className="text-xs text-muted-foreground">Testsúly</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border-none rounded-3xl shadow-md">
+        <Card className="bg-card border-none rounded-lg shadow-md">
           <CardContent className="p-4 text-center">
             <Trophy className="h-5 w-5 mx-auto text-yellow-500 mb-1" />
-            <div className="text-2xl font-bold text-zinc-100">{maxWeight > 0 ? `${maxWeight} kg` : '-'}</div>
-            <p className="text-xs text-zinc-500 truncate" title={selectedExercise || 'PR (max súly)'}>
+            <div className="text-2xl font-bold text-foreground">{maxWeight > 0 ? `${maxWeight} kg` : '-'}</div>
+            <p className="text-xs text-muted-foreground truncate" title={selectedExercise || 'PR (max súly)'}>
               {selectedExercise ? `PR (${selectedExercise})` : 'PR'}
             </p>
           </CardContent>
@@ -151,7 +151,7 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
             <SelectTrigger className="w-full bg-card border-none shadow-sm rounded-full h-12 sm:w-[220px]">
               <SelectValue placeholder="Válassz gyakorlatot" />
             </SelectTrigger>
-            <SelectContent className="bg-card border border-zinc-800 rounded-2xl shadow-xl overflow-hidden">
+            <SelectContent className="bg-card border border-zinc-800 rounded-lg shadow-xl overflow-hidden">
               <div className="p-1">
                 {exerciseNames.map(ex => (
                   <SelectItem key={ex} value={ex} className="rounded-xl cursor-pointer">{ex}</SelectItem>
@@ -178,16 +178,16 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
           {getBadges(completedWorkouts).map((badge, idx) => {
             const Icon = badge.icon
             return (
-              <div key={idx} className="flex flex-col items-center justify-center p-4 bg-background rounded-2xl border border-zinc-800 w-28 text-center">
+              <div key={idx} className="flex flex-col items-center justify-center p-4 bg-background rounded-lg border border-zinc-800 w-28 text-center">
                 <div className={`p-2 rounded-full mb-2 ${badge.color}`}>
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-bold text-zinc-300">{badge.name}</span>
+                <span className="text-xs font-bold text-muted-foreground">{badge.name}</span>
               </div>
             )
           })}
           {completedWorkouts === 0 && (
-            <p className="text-sm text-zinc-500 italic p-4">Még nincs megszerzett kitüntetés.</p>
+            <p className="text-sm text-muted-foreground italic p-4">Még nincs megszerzett kitüntetés.</p>
           )}
         </div>
       </div>
@@ -201,15 +201,15 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
               const status = workout.workout_participants?.[0]?.status
               const isPast = new Date(workout.starts_at) < new Date()
               return (
-                <Card key={workout.id} className="bg-card border-none shadow-sm rounded-3xl">
+                <Card key={workout.id} className="bg-card border-none shadow-sm rounded-lg">
                   <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className={`flex h-10 w-10 items-center justify-center rounded-full ${isPast ? 'bg-zinc-800' : 'bg-primary/10'}`}>
-                        <CalendarDays className={`h-5 w-5 ${isPast ? 'text-zinc-500' : 'text-primary'}`} />
+                        <CalendarDays className={`h-5 w-5 ${isPast ? 'text-muted-foreground' : 'text-primary'}`} />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="break-words font-semibold leading-tight text-zinc-100">{workout.title}</h4>
-                        <p className="text-xs text-zinc-500">
+                        <h4 className="break-words font-semibold leading-tight text-foreground">{workout.title}</h4>
+                        <p className="text-xs text-muted-foreground">
                           {new Date(workout.starts_at).toLocaleString('hu-HU', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
@@ -226,7 +226,7 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
               )
             })
           ) : (
-            <p className="text-zinc-500 text-sm text-center py-8">Még nem volt közös edzés.</p>
+            <p className="text-muted-foreground text-sm text-center py-8">Még nem volt közös edzés.</p>
           )}
         </div>
       </div>

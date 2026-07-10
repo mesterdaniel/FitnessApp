@@ -68,7 +68,7 @@ export function ClientWorkoutsView({
 
     return (
       <div className="mt-4 pt-4 border-t border-zinc-800/50">
-        <p className="text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wider">Edzésterv</p>
+        <p className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider">Edzésterv</p>
         <div className="flex flex-col gap-2 relative pl-2">
           {workout.workout_exercises
             .slice()
@@ -82,11 +82,11 @@ export function ClientWorkoutsView({
                   {(isSupersetWithNext || isSupersetWithPrev) && (
                     <div className={`absolute -left-3 w-1 bg-primary/50 rounded-full ${isSupersetWithNext && !isSupersetWithPrev ? 'top-3 bottom-[-1rem]' : isSupersetWithPrev && !isSupersetWithNext ? 'top-[-1rem] bottom-3' : 'top-[-1rem] bottom-[-1rem]'}`} />
                   )}
-                  <span className="font-semibold text-zinc-200">
+                  <span className="font-semibold text-foreground">
                     {exercise.exercise_name}
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5 ml-2">
-                    <span className="px-2 py-0.5 bg-background border border-zinc-800 rounded-md text-xs font-medium text-zinc-400">
+                    <span className="px-2 py-0.5 bg-background border border-zinc-800 rounded-md text-xs font-medium text-muted-foreground">
                       {exercise.sets} × {exercise.reps} {exercise.weight_target ? `@ ${exercise.weight_target}kg` : ''}
                     </span>
                     {(exercise.rpe || exercise.rir || exercise.rest_seconds) && (
@@ -109,12 +109,12 @@ export function ClientWorkoutsView({
     const myStatus = workout.workout_participants?.[0]?.status || 'pending'
 
     return (
-      <Card key={workout.id} className="bg-card border-none shadow-md rounded-3xl overflow-hidden opacity-90">
+      <Card key={workout.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden opacity-90">
         <CardContent className={compact ? 'p-4' : 'p-4 sm:p-6'}>
           <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
             <div className="min-w-0 flex-1 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className={compact ? 'min-w-0 break-words font-bold leading-tight text-zinc-100' : 'min-w-0 break-words text-xl font-bold leading-tight text-zinc-100'}>{workout.title}</h3>
+                <h3 className={compact ? 'min-w-0 break-words font-bold leading-tight text-foreground' : 'min-w-0 break-words text-xl font-bold leading-tight text-foreground'}>{workout.title}</h3>
                 <div className={`px-3 py-0.5 rounded-full text-xs font-bold ${
                   myStatus === 'accepted' ? 'bg-primary/20 text-primary' : 'bg-yellow-500/20 text-yellow-500'
                 }`}>
@@ -122,7 +122,7 @@ export function ClientWorkoutsView({
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
                   {new Date(workout.starts_at).toLocaleDateString('hu-HU', { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -140,9 +140,9 @@ export function ClientWorkoutsView({
               </div>
 
               {workout.notes && (
-                <p className="text-sm text-zinc-500 mt-2 italic border-l-2 border-primary/50 pl-3">{workout.notes}</p>
+                <p className="text-sm text-muted-foreground mt-2 italic border-l-2 border-primary/50 pl-3">{workout.notes}</p>
               )}
-              <p className="text-sm mt-2 text-zinc-500">Edző: {workout.profiles?.full_name || 'Ismeretlen'}</p>
+              <p className="text-sm mt-2 text-muted-foreground">Edző: {workout.profiles?.full_name || 'Ismeretlen'}</p>
               {renderWorkoutPlan(workout)}
             </div>
             <div className="shrink-0 flex sm:flex-col justify-end">
@@ -163,13 +163,13 @@ export function ClientWorkoutsView({
       <div>
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight">Szabad Időpontok</h1>
-          <p className="text-zinc-400">Jelentkezz az edződ által kiírt szabad edzésekre.</p>
+          <p className="text-muted-foreground">Jelentkezz az edződ által kiírt szabad edzésekre.</p>
         </div>
 
         {/* Date filter controls */}
         <div className="mb-6 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-sm text-zinc-400 mr-1">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground mr-1">
               <Filter className="w-4 h-4" />
               <span>Szűrés:</span>
             </div>
@@ -182,7 +182,7 @@ export function ClientWorkoutsView({
                 className={`rounded-full px-4 py-1.5 text-sm font-medium h-auto transition-all ${
                   quickFilter === filter && !dateFilter
                     ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-card'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-card'
                 }`}
               >
                 {filter === 'all' ? 'Összes' : filter === 'today' ? 'Ma' : 'Ezen a héten'}
@@ -197,7 +197,7 @@ export function ClientWorkoutsView({
               />
             </div>
             {(dateFilter || quickFilter !== 'all') && (
-              <span className="text-xs text-zinc-500 ml-1">
+              <span className="text-xs text-muted-foreground ml-1">
                 ({filteredAvailableWorkouts.length} találat)
               </span>
             )}
@@ -207,16 +207,16 @@ export function ClientWorkoutsView({
         <div className="space-y-4">
           {filteredAvailableWorkouts.length > 0 ? (
             filteredAvailableWorkouts.map((workout) => (
-              <Card key={workout.id} className="bg-card border-none shadow-md rounded-3xl overflow-hidden border-2 border-primary/20">
+              <Card key={workout.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden border-2 border-primary/20">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="min-w-0 break-words text-xl font-bold leading-tight text-zinc-100">{workout.title}</h3>
+                        <h3 className="min-w-0 break-words text-xl font-bold leading-tight text-foreground">{workout.title}</h3>
                         <div className="shrink-0 px-3 py-0.5 rounded-full text-xs font-bold bg-primary/20 text-primary">Nyitott</div>
                       </div>
 
-                      <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           {new Date(workout.starts_at).toLocaleDateString('hu-HU', { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -233,9 +233,9 @@ export function ClientWorkoutsView({
                         )}
                       </div>
                       {workout.notes && (
-                        <p className="text-sm text-zinc-500 mt-2 italic border-l-2 border-primary/50 pl-3">{workout.notes}</p>
+                        <p className="text-sm text-muted-foreground mt-2 italic border-l-2 border-primary/50 pl-3">{workout.notes}</p>
                       )}
-                      <p className="text-sm mt-2 text-zinc-500">Edző: {workout.profiles?.full_name || 'Ismeretlen'}</p>
+                      <p className="text-sm mt-2 text-muted-foreground">Edző: {workout.profiles?.full_name || 'Ismeretlen'}</p>
                       {renderWorkoutPlan(workout)}
                     </div>
 
@@ -255,10 +255,10 @@ export function ClientWorkoutsView({
               </Card>
             ))
           ) : (
-            <Card className="bg-card border-none border-dashed rounded-3xl">
+            <Card className="bg-card border-none border-dashed rounded-lg">
               <CardContent className="flex flex-col items-center justify-center p-12 text-center">
                 <Dumbbell className="h-12 w-12 text-zinc-700 mb-4" />
-                <p className="text-zinc-500">
+                <p className="text-muted-foreground">
                   {dateFilter || quickFilter !== 'all'
                     ? 'Nincs elérhető edzés a kiválasztott időszakban.'
                     : 'Jelenleg nincsenek meghirdetve szabad időpontok.'}
@@ -272,7 +272,7 @@ export function ClientWorkoutsView({
       <div>
         <div className="mb-6">
           <h2 className="text-2xl font-bold tracking-tight">Saját Edzéseim</h2>
-          <p className="text-zinc-400">A már lefoglalt, közelgő edzéseid.</p>
+          <p className="text-muted-foreground">A már lefoglalt, közelgő edzéseid.</p>
         </div>
 
         <Tabs defaultValue="list" className="w-full">
@@ -290,7 +290,7 @@ export function ClientWorkoutsView({
               {myWorkouts.length > 0 ? (
                 myWorkouts.map((workout) => renderMyWorkoutCard(workout))
               ) : (
-                <p className="text-zinc-500 italic ml-2">Nincs még lefoglalt edzésed.</p>
+                <p className="text-muted-foreground italic ml-2">Nincs még lefoglalt edzésed.</p>
               )}
             </div>
           </TabsContent>
@@ -308,8 +308,8 @@ export function ClientWorkoutsView({
                 {selectedDayWorkouts.length > 0 ? (
                   selectedDayWorkouts.map((workout) => renderMyWorkoutCard(workout, true))
                 ) : (
-                  <Card className="bg-card/50 border-none rounded-3xl">
-                    <CardContent className="p-8 text-center text-zinc-500">
+                  <Card className="bg-card/50 border-none rounded-lg">
+                    <CardContent className="p-8 text-center text-muted-foreground">
                       {selectedDate ? 'Nincs edzés ezen a napon.' : 'Kattints egy napra a naptárban.'}
                     </CardContent>
                   </Card>

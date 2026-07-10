@@ -130,8 +130,8 @@ export function ConversationView({ conversationId, messages: initialMessages, cu
           </AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="font-bold text-zinc-100">{otherUser.full_name || 'Ismeretlen'}</h2>
-          <p className="text-xs text-zinc-500">Online</p>
+          <h2 className="font-bold text-foreground">{otherUser.full_name || 'Ismeretlen'}</h2>
+          <p className="text-xs text-muted-foreground">Online</p>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ export function ConversationView({ conversationId, messages: initialMessages, cu
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-6 space-y-4 px-2">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-zinc-600 text-sm">Még nincs üzenet ebben a beszélgetésben.</p>
+            <p className="text-muted-foreground text-sm">Még nincs üzenet ebben a beszélgetésben.</p>
             <p className="text-zinc-700 text-xs mt-1">Küldj egy üzenetet az induláshoz!</p>
           </div>
         )}
@@ -147,13 +147,13 @@ export function ConversationView({ conversationId, messages: initialMessages, cu
           const isMine = msg.sender_id === currentUserId
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+              <div className={`max-w-[75%] rounded-lg px-4 py-3 ${
                 isMine
                   ? 'bg-primary text-primary-foreground rounded-br-md'
-                  : 'bg-card text-zinc-200 rounded-bl-md'
+                  : 'bg-card text-foreground rounded-bl-md'
               }`}>
                 <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                <p className={`text-[10px] mt-1 ${isMine ? 'text-primary-foreground/60' : 'text-zinc-500'}`}>
+                <p className={`text-[10px] mt-1 ${isMine ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
                   {new Date(msg.created_at).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>

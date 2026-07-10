@@ -37,7 +37,7 @@ export function AdminSettingsView({ settings }: { settings: PlatformSetting[] })
   return (
     <form action={submit} className="space-y-4">
       {message && (
-        <div className="rounded-2xl bg-primary/10 px-4 py-3 text-sm text-primary">
+        <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
           {message}
         </div>
       )}
@@ -50,7 +50,7 @@ export function AdminSettingsView({ settings }: { settings: PlatformSetting[] })
           const isBoolean = typeof setting.value === 'boolean'
 
           return (
-            <Card key={setting.key} className="rounded-3xl border-none bg-card shadow-md">
+            <Card key={setting.key} className="rounded-lg border-none bg-card shadow-md">
               <CardContent className="space-y-4 p-5">
                 <input type="hidden" name="setting_key" value={setting.key} />
                 <div className="flex items-start gap-3">
@@ -58,8 +58,8 @@ export function AdminSettingsView({ settings }: { settings: PlatformSetting[] })
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-zinc-100">{meta.label}</h3>
-                    <p className="text-sm text-zinc-500">{setting.description}</p>
+                    <h3 className="font-bold text-foreground">{meta.label}</h3>
+                    <p className="text-sm text-muted-foreground">{setting.description}</p>
                   </div>
                 </div>
 
@@ -68,14 +68,14 @@ export function AdminSettingsView({ settings }: { settings: PlatformSetting[] })
                     <SelectTrigger className="h-11 rounded-full border-none bg-background px-4">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-none bg-card shadow-xl">
+                    <SelectContent className="rounded-lg border-none bg-card shadow-xl">
                       <SelectItem value="true" className="rounded-xl">Bekapcsolva</SelectItem>
                       <SelectItem value="false" className="rounded-xl">Kikapcsolva</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
                   <div className="space-y-2">
-                    <Label htmlFor={setting.key} className="ml-2 text-zinc-400">Ertek</Label>
+                    <Label htmlFor={setting.key} className="ml-2 text-muted-foreground">Ertek</Label>
                     <Input
                       id={setting.key}
                       name={setting.key}
@@ -92,7 +92,7 @@ export function AdminSettingsView({ settings }: { settings: PlatformSetting[] })
         })}
       </div>
 
-      <Button type="submit" disabled={isPending} className="h-12 rounded-full px-6">
+      <Button type="submit" disabled={isPending} className="h-12 rounded-md px-6">
         {isPending ? 'Mentes...' : 'Beallitasok mentese'}
       </Button>
     </form>

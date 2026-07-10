@@ -18,12 +18,12 @@ export function AdminReportsCharts({
 }) {
   return (
     <div className="grid gap-6 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
-      <Card className="rounded-[2rem] border border-white/5 bg-zinc-950/50 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden relative">
+      <Card className="rounded-[2rem] border border-white/5 bg-background/50 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
         <CardContent className="space-y-6 p-6">
           <div>
             <h2 className="text-xl font-extrabold text-white">Edzés Állapotok</h2>
-            <p className="text-sm text-zinc-400">Aktuális havi teljesítés és lemorzsolódás.</p>
+            <p className="text-sm text-muted-foreground">Aktuális havi teljesítés és lemorzsolódás.</p>
           </div>
           
           <div className="grid gap-3">
@@ -35,12 +35,12 @@ export function AdminReportsCharts({
         </CardContent>
       </Card>
 
-      <Card className="rounded-[2rem] border border-white/5 bg-zinc-950/50 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden relative">
+      <Card className="rounded-[2rem] border border-white/5 bg-background/50 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
         <CardContent className="space-y-6 p-6">
           <div>
             <h2 className="text-xl font-extrabold text-white">Legaktívabb Edzők</h2>
-            <p className="text-sm text-zinc-400">Havi edzésszám alapján (Top 5).</p>
+            <p className="text-sm text-muted-foreground">Havi edzésszám alapján (Top 5).</p>
           </div>
           
           <div className="h-[250px] w-full mt-4">
@@ -61,7 +61,7 @@ export function AdminReportsCharts({
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-full items-center justify-center rounded-2xl bg-white/5 text-sm text-zinc-500">
+              <div className="flex h-full items-center justify-center rounded-lg bg-white/5 text-sm text-muted-foreground">
                 Ebben a hónapban még nincs edzői aktivitási adat.
               </div>
             )}
@@ -74,12 +74,12 @@ export function AdminReportsCharts({
 
 function StatusRow({ label, value, icon: Icon, color, bg }: { label: string; value: number; icon: any; color: string; bg: string }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl bg-black/40 border border-white/5 px-4 py-3 hover:bg-white/5 transition-colors">
+    <div className="flex items-center justify-between rounded-lg bg-black/40 border border-white/5 px-4 py-3 hover:bg-white/5 transition-colors">
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-xl ${bg} ${color}`}>
           <Icon className="w-4 h-4" />
         </div>
-        <span className="text-sm font-bold text-zinc-200">{label}</span>
+        <span className="text-sm font-bold text-foreground">{label}</span>
       </div>
       <span className="text-lg font-black text-white">{value}</span>
     </div>

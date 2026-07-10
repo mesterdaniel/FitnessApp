@@ -52,7 +52,7 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Üzenetek</h1>
-          <p className="text-zinc-400">Küldj üzeneteket edzőidnek vagy klienseidnek.</p>
+          <p className="text-muted-foreground">Küldj üzeneteket edzőidnek vagy klienseidnek.</p>
         </div>
 
         <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
@@ -67,7 +67,7 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
             </DialogHeader>
             <div className="mt-4 space-y-4">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Felhasználó keresése..."
                   value={userSearch}
@@ -80,7 +80,7 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
                   <button
                     key={u.id}
                     onClick={() => startConversation(u.id)}
-                    className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-background/80 transition-colors text-left"
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-background/80 transition-colors text-left"
                   >
                     <Avatar className="h-10 w-10">
                       <AvatarFallback className="bg-primary/20 text-primary font-bold">
@@ -88,13 +88,13 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-zinc-200 truncate">{u.full_name}</p>
-                      <p className="text-xs text-zinc-500">{getRoleLabel(u.role)}</p>
+                      <p className="font-semibold text-foreground truncate">{u.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{getRoleLabel(u.role)}</p>
                     </div>
                   </button>
                 ))}
                 {filteredUsers.length === 0 && (
-                  <p className="text-zinc-500 text-sm text-center py-4">Nincs találat.</p>
+                  <p className="text-muted-foreground text-sm text-center py-4">Nincs találat.</p>
                 )}
               </div>
             </div>
@@ -104,7 +104,7 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
 
       {/* Keresés */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Beszélgetés keresése..."
           value={searchQuery}
@@ -119,7 +119,7 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
           filteredConversations.map(conv => (
             <Card
               key={conv.id}
-              className="bg-card border-none shadow-md rounded-3xl overflow-hidden cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all"
+              className="bg-card border-none shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all"
               onClick={() => router.push(`/chat/${conv.id}`)}
             >
               <CardContent className="p-4 flex items-center gap-4">
@@ -129,32 +129,32 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-zinc-100 truncate">{conv.otherUser?.full_name || 'Ismeretlen'}</p>
+                  <p className="font-bold text-foreground truncate">{conv.otherUser?.full_name || 'Ismeretlen'}</p>
                   {conv.lastMessage ? (
-                    <p className="text-sm text-zinc-500 truncate">
+                    <p className="text-sm text-muted-foreground truncate">
                       {conv.lastMessage.sender_id === currentUserId ? 'Te: ' : ''}
                       {conv.lastMessage.content}
                     </p>
                   ) : (
-                    <p className="text-sm text-zinc-600 italic">Nincs még üzenet</p>
+                    <p className="text-sm text-muted-foreground italic">Nincs még üzenet</p>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   {conv.lastMessage && (
-                    <span className="text-xs text-zinc-600">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(conv.lastMessage.created_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })}
                     </span>
                   )}
-                  <ChevronRight className="w-4 h-4 text-zinc-600" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
           ))
         ) : (
-          <Card className="bg-card border-none border-dashed rounded-3xl">
+          <Card className="bg-card border-none border-dashed rounded-lg">
             <CardContent className="flex flex-col items-center justify-center p-12 text-center">
               <MessageCircle className="h-12 w-12 text-zinc-700 mb-4" />
-              <p className="text-zinc-500">
+              <p className="text-muted-foreground">
                 {searchQuery
                   ? 'Nincs találat.'
                   : 'Még nincs beszélgetésed. Indíts egyet!'}

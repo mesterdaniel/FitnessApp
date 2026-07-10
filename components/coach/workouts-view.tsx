@@ -208,11 +208,11 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
     const planExercises = mode === 'new' ? newPlanExercises : editPlanExercises
 
     return (
-      <div className="space-y-3 rounded-2xl bg-background/50 p-4">
+      <div className="space-y-3 rounded-lg bg-background/50 p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <Label className="text-zinc-300 ml-1">Gyakorlatok hozzáadása</Label>
-            <p className="text-xs text-zinc-500 ml-1 mt-1">A kliens ezt edzéstervként fogja látni.</p>
+            <Label className="text-muted-foreground ml-1">Gyakorlatok hozzáadása</Label>
+            <p className="text-xs text-muted-foreground ml-1 mt-1">A kliens ezt edzéstervként fogja látni.</p>
           </div>
           <Button
             type="button"
@@ -226,14 +226,14 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
         </div>
 
         {(!coachExercises || coachExercises.length === 0) && (
-          <p className="text-sm text-zinc-500">Előbb adj hozzá gyakorlatokat a gyakorlat-könyvtárban.</p>
+          <p className="text-sm text-muted-foreground">Előbb adj hozzá gyakorlatokat a gyakorlat-könyvtárban.</p>
         )}
 
         <div className="space-y-3">
           {planExercises.map((exercise, index) => {
             const isAdvanced = expandedAdvanced[exercise.key]
             return (
-              <div key={exercise.key} className="flex flex-col gap-2 rounded-2xl bg-card p-3 shadow-sm border border-zinc-800">
+              <div key={exercise.key} className="flex flex-col gap-2 rounded-lg bg-card p-3 shadow-sm border border-zinc-800">
                 <input type="hidden" name="workout_exercise_id" value={exercise.id || ""} />
                 <input type="hidden" name="workout_exercise_name" value={exercise.exercise_name} />
                 <input type="hidden" name="workout_exercise_sets" value={exercise.sets} />
@@ -246,7 +246,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
 
                 <div className="grid gap-3 md:grid-cols-[1fr_72px_88px_104px_auto_40px] items-end">
                   <div className="space-y-1">
-                    <Label className="text-xs text-zinc-500">Gyakorlat {exercise.is_superset && <span className="text-primary ml-1">(Szuperszett)</span>}</Label>
+                    <Label className="text-xs text-muted-foreground">Gyakorlat {exercise.is_superset && <span className="text-primary ml-1">(Szuperszett)</span>}</Label>
                     <Select
                       value={exercise.exercise_name}
                       onValueChange={(value) => updatePlanExercise(mode, exercise.key, 'exercise_name', value)}
@@ -254,7 +254,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                       <SelectTrigger className="w-full bg-background border-none rounded-full h-10 px-3">
                         <SelectValue placeholder="Válassz" />
                       </SelectTrigger>
-                      <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
+                      <SelectContent className="bg-card border-none rounded-lg shadow-xl">
                         {(coachExercises || []).map((coachExercise) => (
                           <SelectItem key={coachExercise.id} value={coachExercise.name} className="rounded-xl py-2.5">
                             {coachExercise.name}
@@ -265,7 +265,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs text-zinc-500">Sor.</Label>
+                    <Label className="text-xs text-muted-foreground">Sor.</Label>
                     <Input
                       type="number"
                       min="1"
@@ -276,7 +276,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs text-zinc-500">Ism.</Label>
+                    <Label className="text-xs text-muted-foreground">Ism.</Label>
                     <Input
                       type="number"
                       min="1"
@@ -287,7 +287,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs text-zinc-500">Cél kg</Label>
+                    <Label className="text-xs text-muted-foreground">Cél kg</Label>
                     <Input
                       type="number"
                       step="0.5"
@@ -303,7 +303,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                     type="button"
                     variant="ghost"
                     onClick={() => toggleAdvanced(exercise.key)}
-                    className={`h-10 rounded-full px-3 text-xs ${isAdvanced ? 'bg-primary/10 text-primary' : 'text-zinc-400 hover:text-zinc-200 hover:bg-background'}`}
+                    className={`h-10 rounded-md px-3 text-xs ${isAdvanced ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-background'}`}
                   >
                     <Settings2 className="w-4 h-4 mr-1" />
                     Haladó
@@ -322,9 +322,9 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
 
                 {/* Haladó mezők */}
                 {isAdvanced && (
-                  <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 mt-2 p-3 bg-background/50 rounded-2xl border border-zinc-800/50">
+                  <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 mt-2 p-3 bg-background/50 rounded-lg border border-zinc-800/50">
                     <div className="space-y-1">
-                      <Label className="text-xs text-zinc-500">RPE (1-10)</Label>
+                      <Label className="text-xs text-muted-foreground">RPE (1-10)</Label>
                       <Input
                         type="number"
                         min="1" max="10"
@@ -335,7 +335,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-zinc-500">RIR (0-10)</Label>
+                      <Label className="text-xs text-muted-foreground">RIR (0-10)</Label>
                       <Input
                         type="number"
                         min="0" max="10"
@@ -346,7 +346,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-zinc-500">Pihenő (mp)</Label>
+                      <Label className="text-xs text-muted-foreground">Pihenő (mp)</Label>
                       <Input
                         type="number"
                         min="0" step="15"
@@ -361,7 +361,7 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                         type="button"
                         variant={exercise.is_superset ? "default" : "outline"}
                         onClick={() => updatePlanExercise(mode, exercise.key, 'is_superset', !exercise.is_superset)}
-                        className={`h-9 w-full rounded-full text-xs font-semibold ${exercise.is_superset ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' : 'border-zinc-700 bg-transparent text-zinc-400'}`}
+                        className={`h-9 w-full rounded-full text-xs font-semibold ${exercise.is_superset ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' : 'border-zinc-700 bg-transparent text-muted-foreground'}`}
                       >
                         <LinkIcon className="w-3.5 h-3.5 mr-1.5" />
                         Szuperszett
@@ -406,12 +406,12 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
             </DialogHeader>
             <form action={handleAddSubmit} className="space-y-5 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="client_id" className="text-zinc-400 ml-2">Kliens / Foglalhatóság</Label>
+                <Label htmlFor="client_id" className="text-muted-foreground ml-2">Kliens / Foglalhatóság</Label>
                 <Select name="client_id" required defaultValue="open">
                   <SelectTrigger className="w-full bg-background border-none rounded-full h-12 px-4">
                     <SelectValue placeholder="Válassz klienst" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+                  <SelectContent className="bg-card border-none rounded-lg shadow-xl p-2">
                     <SelectItem value="open" className="rounded-xl py-2.5 font-bold text-primary">Bárki (Szabad időpont)</SelectItem>
                     {clients.map(c => (
                       <SelectItem key={c.id} value={c.id} className="rounded-xl py-2.5">{c.full_name}</SelectItem>
@@ -420,36 +420,36 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-zinc-400 ml-2">Edzés megnevezése</Label>
+                <Label htmlFor="title" className="text-muted-foreground ml-2">Edzés megnevezése</Label>
                 <Input id="title" name="title" placeholder="pl. Teljes test átmozgatás" required className="bg-background border-none rounded-full h-12 px-4" />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="date" className="text-zinc-400 ml-2">Dátum</Label>
+                  <Label htmlFor="date" className="text-muted-foreground ml-2">Dátum</Label>
                   <Input id="date" name="date" type="date" required className="bg-background border-none rounded-full h-12 px-4" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="time" className="text-zinc-400 ml-2">Időpont</Label>
+                  <Label htmlFor="time" className="text-muted-foreground ml-2">Időpont</Label>
                   <Input id="time" name="time" type="time" required className="bg-background border-none rounded-full h-12 px-4" />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="duration_min" className="text-zinc-400 ml-2">Időtartam (perc)</Label>
+                  <Label htmlFor="duration_min" className="text-muted-foreground ml-2">Időtartam (perc)</Label>
                   <Input id="duration_min" name="duration_min" type="number" defaultValue="60" required className="bg-background border-none rounded-full h-12 px-4" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="capacity" className="text-zinc-400 ml-2">Létszám (fő)</Label>
+                  <Label htmlFor="capacity" className="text-muted-foreground ml-2">Létszám (fő)</Label>
                   <Input id="capacity" name="capacity" type="number" defaultValue="1" required className="bg-background border-none rounded-full h-12 px-4" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location" className="text-zinc-400 ml-2">Helyszín (opcionális)</Label>
+                <Label htmlFor="location" className="text-muted-foreground ml-2">Helyszín (opcionális)</Label>
                 <Input id="location" name="location" placeholder="pl. Cutler Gym" className="bg-background border-none rounded-full h-12 px-4" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notes" className="text-zinc-400 ml-2">Megjegyzés (opcionális)</Label>
-                <Textarea id="notes" name="notes" placeholder="Ide írhatsz plusz információkat, utasításokat az edzéshez..." className="bg-background border-none rounded-2xl p-4 min-h-[100px]" />
+                <Label htmlFor="notes" className="text-muted-foreground ml-2">Megjegyzés (opcionális)</Label>
+                <Textarea id="notes" name="notes" placeholder="Ide írhatsz plusz információkat, utasításokat az edzéshez..." className="bg-background border-none rounded-lg p-4 min-h-[100px]" />
               </div>
               {renderPlanBuilder('new')}
               <DialogFooter className="mt-8 gap-2 sm:gap-0 sticky bottom-0 bg-card/80 backdrop-blur-md p-4 -mx-6 -mb-6 rounded-b-[2rem] border-t border-zinc-800">
@@ -478,12 +478,12 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
             <form action={handleEditSubmit} className="space-y-5 pt-4">
               <input type="hidden" name="id" value={editingWorkout.id} />
               <div className="space-y-2">
-                <Label htmlFor="edit_client_id" className="text-zinc-400 ml-2">Kliens / Foglalhatóság</Label>
+                <Label htmlFor="edit_client_id" className="text-muted-foreground ml-2">Kliens / Foglalhatóság</Label>
                 <Select name="client_id" required defaultValue={getAssignedClientId(editingWorkout)}>
                   <SelectTrigger className="w-full bg-background border-none rounded-full h-12 px-4">
                     <SelectValue placeholder="Válassz klienst" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+                  <SelectContent className="bg-card border-none rounded-lg shadow-xl p-2">
                     <SelectItem value="open" className="rounded-xl py-2.5 font-bold text-primary">Bárki (Szabad időpont)</SelectItem>
                     {clients.map(c => (
                       <SelectItem key={c.id} value={c.id} className="rounded-xl py-2.5">{c.full_name}</SelectItem>
@@ -492,36 +492,36 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_title" className="text-zinc-400 ml-2">Edzés megnevezése</Label>
+                <Label htmlFor="edit_title" className="text-muted-foreground ml-2">Edzés megnevezése</Label>
                 <Input id="edit_title" name="title" defaultValue={editingWorkout.title} required className="bg-background border-none rounded-full h-12 px-4" />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="edit_date" className="text-zinc-400 ml-2">Dátum</Label>
+                  <Label htmlFor="edit_date" className="text-muted-foreground ml-2">Dátum</Label>
                   <Input id="edit_date" name="date" type="date" defaultValue={new Date(editingWorkout.starts_at).toISOString().split('T')[0]} required className="bg-background border-none rounded-full h-12 px-4" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit_time" className="text-zinc-400 ml-2">Időpont</Label>
+                  <Label htmlFor="edit_time" className="text-muted-foreground ml-2">Időpont</Label>
                   <Input id="edit_time" name="time" type="time" defaultValue={new Date(editingWorkout.starts_at).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })} required className="bg-background border-none rounded-full h-12 px-4" />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="edit_duration_min" className="text-zinc-400 ml-2">Időtartam (perc)</Label>
+                  <Label htmlFor="edit_duration_min" className="text-muted-foreground ml-2">Időtartam (perc)</Label>
                   <Input id="edit_duration_min" name="duration_min" type="number" defaultValue={editingWorkout.duration_min} required className="bg-background border-none rounded-full h-12 px-4" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit_capacity" className="text-zinc-400 ml-2">Létszám (fő)</Label>
+                  <Label htmlFor="edit_capacity" className="text-muted-foreground ml-2">Létszám (fő)</Label>
                   <Input id="edit_capacity" name="capacity" type="number" defaultValue={editingWorkout.capacity || 1} required className="bg-background border-none rounded-full h-12 px-4" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_location" className="text-zinc-400 ml-2">Helyszín (opcionális)</Label>
+                <Label htmlFor="edit_location" className="text-muted-foreground ml-2">Helyszín (opcionális)</Label>
                 <Input id="edit_location" name="location" defaultValue={editingWorkout.location || ''} className="bg-background border-none rounded-full h-12 px-4" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_notes" className="text-zinc-400 ml-2">Megjegyzés (opcionális)</Label>
-                <Textarea id="edit_notes" name="notes" defaultValue={editingWorkout.notes || ''} className="bg-background border-none rounded-2xl p-4 min-h-[100px]" />
+                <Label htmlFor="edit_notes" className="text-muted-foreground ml-2">Megjegyzés (opcionális)</Label>
+                <Textarea id="edit_notes" name="notes" defaultValue={editingWorkout.notes || ''} className="bg-background border-none rounded-lg p-4 min-h-[100px]" />
               </div>
               {renderPlanBuilder('edit')}
               <DialogFooter className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 w-full sticky bottom-0 bg-card/80 backdrop-blur-md p-4 -mx-6 -mb-6 rounded-b-[2rem] border-t border-zinc-800">
@@ -552,19 +552,19 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
           <div className="space-y-4">
             {workouts && workouts.length > 0 ? (
               workouts.map((workout) => (
-                <Card key={workout.id} className="bg-card border-none shadow-md rounded-3xl overflow-hidden">
+                <Card key={workout.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden">
                   <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
                     <div className="min-w-0 flex-1 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="min-w-0 break-words text-xl font-bold leading-tight text-zinc-100">{workout.title}</h3>
+                        <h3 className="min-w-0 break-words text-xl font-bold leading-tight text-foreground">{workout.title}</h3>
                         <div className={`px-3 py-0.5 rounded-full text-xs font-bold ${
-                          workout.status === 'scheduled' ? 'bg-primary/20 text-primary' : 'bg-zinc-800 text-zinc-300'
+                          workout.status === 'scheduled' ? 'bg-primary/20 text-primary' : 'bg-zinc-800 text-muted-foreground'
                         }`}>
                           {workout.status}
                         </div>
                       </div>
                       
-                      <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <CalendarDays className="w-4 h-4" />
                           {new Date(workout.starts_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })}
@@ -585,13 +585,13 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                         </div>
                       </div>
                       {workout.notes && (
-                        <p className="text-sm text-zinc-500 mt-1 italic border-l-2 border-primary/50 pl-3">"{workout.notes}"</p>
+                        <p className="text-sm text-muted-foreground mt-1 italic border-l-2 border-primary/50 pl-3">"{workout.notes}"</p>
                       )}
 
                       {/* Workout exercises */}
                       {workout.workout_exercises && workout.workout_exercises.length > 0 && (
-                        <div className="mt-3 bg-background/30 rounded-2xl p-4 border border-zinc-800/50">
-                          <h4 className="text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wider">Edzésterv</h4>
+                        <div className="mt-3 bg-background/30 rounded-lg p-4 border border-zinc-800/50">
+                          <h4 className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider">Edzésterv</h4>
                           <div className="flex flex-col gap-2 relative">
                             {workout.workout_exercises
                               .slice()
@@ -605,11 +605,11 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                                     {(isSupersetWithNext || isSupersetWithPrev) && (
                                       <div className={`absolute -left-3 w-1 bg-primary/50 rounded-full ${isSupersetWithNext && !isSupersetWithPrev ? 'top-2 bottom-[-1rem]' : isSupersetWithPrev && !isSupersetWithNext ? 'top-[-1rem] bottom-2' : 'top-[-1rem] bottom-[-1rem]'}`} />
                                     )}
-                                    <span className="font-semibold text-zinc-200">
+                                    <span className="font-semibold text-foreground">
                                       {we.exercise_name}
                                     </span>
                                     <div className="flex flex-wrap items-center gap-1.5 ml-2">
-                                      <span className="px-2 py-0.5 bg-background border border-zinc-800 rounded-md text-xs font-medium text-zinc-400">
+                                      <span className="px-2 py-0.5 bg-background border border-zinc-800 rounded-md text-xs font-medium text-muted-foreground">
                                         {we.sets} × {we.reps} {we.weight_target ? `@ ${we.weight_target}kg` : ''}
                                       </span>
                                       {(we.rpe || we.rir || we.rest_seconds) && (
@@ -630,14 +630,14 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                       {/* Participants */}
                       {workout.workout_participants && workout.workout_participants.length > 0 && (
                         <div className="mt-2 space-y-1">
-                          <p className="text-xs text-zinc-500 font-semibold">Jelentkezők:</p>
+                          <p className="text-xs text-muted-foreground font-semibold">Jelentkezők:</p>
                           {workout.workout_participants.map((p: any) => (
                             <div key={p.id} className="flex flex-wrap items-center gap-2 text-sm">
-                              <User className="w-3 h-3 text-zinc-500" />
+                              <User className="w-3 h-3 text-muted-foreground" />
                               <span className={p.status === 'accepted' ? 'text-green-400' : p.status === 'rejected' ? 'text-red-400' : 'text-yellow-400'}>
                                 {p.profiles?.full_name || 'Ismeretlen'}
                               </span>
-                              <span className="text-xs text-zinc-600">({p.status === 'accepted' ? 'Elfogadva' : p.status === 'rejected' ? 'Elutasítva' : 'Függőben'})</span>
+                              <span className="text-xs text-muted-foreground">({p.status === 'accepted' ? 'Elfogadva' : p.status === 'rejected' ? 'Elutasítva' : 'Függőben'})</span>
                               {p.status === 'pending' && (
                                 <div className="flex gap-2 mt-1 sm:mt-0 sm:ml-4">
                                   <Button onClick={() => handleStatusChange(p.id, 'accepted')} size="sm" className="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 rounded-full font-bold h-8 px-3">
@@ -663,11 +663,11 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                 </Card>
               ))
             ) : (
-              <Card className="bg-card border-none border-dashed rounded-3xl">
+              <Card className="bg-card border-none border-dashed rounded-lg">
                 <CardContent className="flex flex-col items-center justify-center p-16 text-center">
                   <CalendarDays className="h-16 w-16 text-zinc-700 mb-4" />
-                  <h2 className="text-xl font-bold text-zinc-300 mb-2">Nincs edzés betervezve</h2>
-                  <p className="text-zinc-500 max-w-md">
+                  <h2 className="text-xl font-bold text-muted-foreground mb-2">Nincs edzés betervezve</h2>
+                  <p className="text-muted-foreground max-w-md">
                     Jelenleg nincsenek kiírt edzéseid az ügyfeleid számára.
                   </p>
                 </CardContent>
@@ -688,16 +688,16 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
               </h3>
               {selectedDayWorkouts.length > 0 ? (
                 selectedDayWorkouts.map((w: any) => (
-                  <Card key={w.id} className={`bg-card border-none shadow-md rounded-3xl ${w.isExternal ? 'opacity-80' : 'cursor-pointer hover:shadow-lg transition-all'}`} onClick={() => !w.isExternal && openEditModal(w)}>
+                  <Card key={w.id} className={`bg-card border-none shadow-md rounded-lg ${w.isExternal ? 'opacity-80' : 'cursor-pointer hover:shadow-lg transition-all'}`} onClick={() => !w.isExternal && openEditModal(w)}>
                     <CardContent className="p-4">
-                      <h4 className="font-bold text-zinc-100">{w.title}</h4>
-                      <p className="text-sm text-zinc-400">
+                      <h4 className="font-bold text-foreground">{w.title}</h4>
+                      <p className="text-sm text-muted-foreground">
                         {new Date(w.starts_at).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })} • {w.duration_min} perc
                       </p>
                       {!w.isExternal && (
                         <div className="flex items-center gap-2 mt-2 text-xs">
-                          <Users className="w-3 h-3 text-zinc-500" />
-                          <span className="text-zinc-500">{w.workout_participants?.filter((p: any) => p.status === 'accepted').length || 0}/{w.capacity || 1} fő</span>
+                          <Users className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{w.workout_participants?.filter((p: any) => p.status === 'accepted').length || 0}/{w.capacity || 1} fő</span>
                           {w.workout_participants?.some((p: any) => p.status === 'pending') && (
                             <span className="text-yellow-500 font-bold">• Várakozó jelentkezők</span>
                           )}
@@ -707,8 +707,8 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                   </Card>
                 ))
               ) : (
-                <Card className="bg-card/50 border-none rounded-3xl">
-                  <CardContent className="p-8 text-center text-zinc-500">
+                <Card className="bg-card/50 border-none rounded-lg">
+                  <CardContent className="p-8 text-center text-muted-foreground">
                     {selectedDate ? 'Nincs edzés ezen a napon.' : 'Kattints egy napra a naptárban.'}
                   </CardContent>
                 </Card>

@@ -111,6 +111,8 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION public.update_conversation_updated_at()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
   UPDATE public.conversations SET updated_at = NOW() WHERE id = NEW.conversation_id;
@@ -192,8 +194,8 @@ CREATE POLICY "Trainers can view logs of their clients" ON public.exercise_logs 
 );
 
 -- Conversations
-CREATE POLICY "Participants can view their conversations" ON public.conversations FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants WHERE conversation_id = id AND profile_id = auth.uid())
+CREATE POLICY "Participants can view their conversations" ON public.conversations FOR SELECT TO authenticated USING (
+  true
 );
 CREATE POLICY "Users can create conversations" ON public.conversations FOR INSERT WITH CHECK (true);
 
@@ -281,6 +283,10 @@ CREATE POLICY "Clients can insert their own participation" ON public.workout_par
 -- Kliensek törölhetik (visszavonhatják) a jelentkezésüket
 CREATE POLICY "Clients can delete their own participation" ON public.workout_participants
   FOR DELETE USING (auth.uid() = client_id);
+
+-- Kliensek módosíthatják a saját jelentkezésüket (szükséges az upsert-hez)
+CREATE POLICY "Clients can update their own participation" ON public.workout_participants
+  FOR UPDATE USING (auth.uid() = client_id) WITH CHECK (auth.uid() = client_id);
 
 -- Edzők láthatják, módosíthatják a saját edzéseikhez tartozó jelentkezéseket
 CREATE POLICY "Trainers can view and manage their workout participants" ON public.workout_participants
@@ -851,7 +857,10 @@ ALTER TABLE public.workout_participants ADD COLUMN pass_id UUID REFERENCES publi
 
 -- Trigger to deduct pass on INSERT if pass_id is provided
 CREATE OR REPLACE FUNCTION public.deduct_pass_on_booking()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
     IF NEW.pass_id IS NOT NULL THEN
         UPDATE public.client_passes
@@ -871,7 +880,10 @@ FOR EACH ROW EXECUTE FUNCTION public.deduct_pass_on_booking();
 
 -- Trigger to refund pass on DELETE if pass_id was provided
 CREATE OR REPLACE FUNCTION public.refund_pass_on_cancellation()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
     IF OLD.pass_id IS NOT NULL THEN
         UPDATE public.client_passes
@@ -947,6 +959,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated, anon, 
 -- Explicitly grant permissions to remaining tables to fix "permission denied" errors
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.messages TO authenticated, anon, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.conversations TO authenticated, anon, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.conversation_participants TO authenticated, anon, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.client_passes TO authenticated, anon, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO authenticated, anon, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.admin_audit_logs TO authenticated, anon, service_role;
@@ -994,7 +1008,4 @@ CREATE POLICY "Participants can view members of their conversations" ON public.c
   );
 
 CREATE POLICY "Users can add participants to conversations" ON public.conversation_participants
-  FOR INSERT WITH CHECK (
-    profile_id = auth.uid() OR 
-    private.is_conversation_participant(conversation_id, auth.uid())
-  );
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);

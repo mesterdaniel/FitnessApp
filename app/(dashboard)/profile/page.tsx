@@ -17,7 +17,7 @@ export default async function ProfilePage() {
     <div className="space-y-6 max-w-2xl mx-auto pb-24">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Profil Beállítások</h1>
-        <p className="text-zinc-400">Kezeld a személyes adataidat.</p>
+        <p className="text-muted-foreground">Kezeld a személyes adataidat.</p>
       </div>
 
       <ProfileForms user={user} profile={profile} />

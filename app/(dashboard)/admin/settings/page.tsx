@@ -13,7 +13,7 @@ export default async function AdminSettingsPage() {
     <div className="mx-auto max-w-5xl space-y-6 pb-24">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Platform beallitasok</h1>
-        <p className="text-zinc-400">Rendszerszintu mukodesi szabalyok es admin kapcsolok.</p>
+        <p className="text-muted-foreground">Rendszerszintu mukodesi szabalyok es admin kapcsolok.</p>
       </div>
 
       <AdminSettingsView settings={(settings || []) as PlatformSetting[]} />

@@ -72,7 +72,7 @@ function MuscleGroupSelector({
               className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 isSelected
                   ? 'bg-primary/25 text-primary ring-1 ring-primary/40 shadow-sm shadow-primary/10'
-                  : 'bg-background/80 text-zinc-400 hover:bg-background hover:text-zinc-300'
+                  : 'bg-background/80 text-muted-foreground hover:bg-background hover:text-muted-foreground'
               }`}
             >
               {isSelected && <Check className="w-3.5 h-3.5" />}
@@ -231,7 +231,7 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gyakorlat-könyvtár</h1>
-          <p className="text-zinc-400">Hozd létre és kezeld a saját gyakorlataidat.</p>
+          <p className="text-muted-foreground">Hozd létre és kezeld a saját gyakorlataidat.</p>
         </div>
 
         <div className="flex gap-2">
@@ -259,12 +259,12 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
             </DialogHeader>
             <form action={handleAddSubmit} className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-zinc-400 ml-2">Név *</Label>
+                <Label htmlFor="name" className="text-muted-foreground ml-2">Név *</Label>
                 <Input id="name" name="name" placeholder="pl. Fekvenyomás" required className="bg-background border-none rounded-full h-12 px-4" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center ml-2">
-                  <Label className="text-zinc-400">Kategória</Label>
+                  <Label className="text-muted-foreground">Kategória</Label>
                   {!isCustomCategory && (
                     <button type="button" onClick={() => setIsCustomCategory(true)} className="text-xs text-primary hover:underline">
                       + Új kategória írása
@@ -291,7 +291,7 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
                     <SelectTrigger className="bg-background border-none rounded-full h-12 px-4 w-full">
                       <SelectValue placeholder="Válassz..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+                    <SelectContent className="bg-card border-none rounded-lg shadow-xl p-2">
                       {categories.map(c => (
                         <SelectItem key={c.value} value={c.value} className="rounded-xl py-2.5">{c.label}</SelectItem>
                       ))}
@@ -300,8 +300,8 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
                 )}
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-400 ml-2">Izomcsoportok</Label>
-                <p className="text-xs text-zinc-500 ml-2">Válassz egy vagy több izomcsoportot</p>
+                <Label className="text-muted-foreground ml-2">Izomcsoportok</Label>
+                <p className="text-xs text-muted-foreground ml-2">Válassz egy vagy több izomcsoportot</p>
                 <MuscleGroupSelector 
                   selected={newMuscleGroups} 
                   onChange={setNewMuscleGroups} 
@@ -309,8 +309,8 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-zinc-400 ml-2">Leírás / Végrehajtás</Label>
-                <Textarea id="description" name="description" placeholder="Hogyan kell végezni a gyakorlatot..." className="bg-background border-none rounded-2xl p-4 min-h-[100px]" />
+                <Label htmlFor="description" className="text-muted-foreground ml-2">Leírás / Végrehajtás</Label>
+                <Textarea id="description" name="description" placeholder="Hogyan kell végezni a gyakorlatot..." className="bg-background border-none rounded-lg p-4 min-h-[100px]" />
               </div>
               <DialogFooter className="mt-6 gap-2">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="rounded-full hover:bg-background">Mégsem</Button>
@@ -341,13 +341,13 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
               </form>
               
               <div className="space-y-2 mt-4 max-h-[300px] overflow-y-auto">
-                <p className="text-sm font-semibold text-zinc-400">Saját kategóriáid</p>
+                <p className="text-sm font-semibold text-muted-foreground">Saját kategóriáid</p>
                 {customCategories.length === 0 ? (
-                  <p className="text-sm text-zinc-500 py-2">Még nincs saját kategóriád.</p>
+                  <p className="text-sm text-muted-foreground py-2">Még nincs saját kategóriád.</p>
                 ) : (
                   customCategories.map(c => (
-                    <div key={c.id} className="flex items-center justify-between rounded-2xl bg-background px-4 py-2.5">
-                      <span className="text-zinc-100 font-medium">{c.name}</span>
+                    <div key={c.id} className="flex items-center justify-between rounded-lg bg-background px-4 py-2.5">
+                      <span className="text-foreground font-medium">{c.name}</span>
                       <Button 
                         variant="ghost" 
                         size="icon" 
@@ -377,7 +377,7 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
       {/* Keresés és szűrés */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Keresés név vagy leírás alapján..."
             value={searchQuery}
@@ -389,7 +389,7 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
           <SelectTrigger className="bg-card border-none rounded-full h-12 px-4 w-full sm:w-48">
             <SelectValue placeholder="Szűrés..." />
           </SelectTrigger>
-          <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+          <SelectContent className="bg-card border-none rounded-lg shadow-xl p-2">
             <SelectItem value="all" className="rounded-xl py-2.5">Összes Kategória</SelectItem>
             {categories.map(c => (
               <SelectItem key={c.value} value={c.value} className="rounded-xl py-2.5">{c.label}</SelectItem>
@@ -416,12 +416,12 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
             <form action={handleEditSubmit} className="space-y-4 mt-4">
               <input type="hidden" name="id" value={editingExercise.id} />
               <div className="space-y-2">
-                <Label className="text-zinc-400 ml-2">Név *</Label>
+                <Label className="text-muted-foreground ml-2">Név *</Label>
                 <Input name="name" defaultValue={editingExercise.name} required className="bg-background border-none rounded-full h-12 px-4" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center ml-2">
-                  <Label className="text-zinc-400">Kategória</Label>
+                  <Label className="text-muted-foreground">Kategória</Label>
                   {!isCustomCategory && (
                     <button type="button" onClick={() => setIsCustomCategory(true)} className="text-xs text-primary hover:underline">
                       + Új kategória írása
@@ -448,7 +448,7 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
                     <SelectTrigger className="bg-background border-none rounded-full h-12 px-4 w-full">
                       <SelectValue placeholder="Válassz..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl p-2">
+                    <SelectContent className="bg-card border-none rounded-lg shadow-xl p-2">
                       {categories.map(c => (
                         <SelectItem key={c.value} value={c.value} className="rounded-xl py-2.5">{c.label}</SelectItem>
                       ))}
@@ -457,8 +457,8 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
                 )}
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-400 ml-2">Izomcsoportok</Label>
-                <p className="text-xs text-zinc-500 ml-2">Válassz egy vagy több izomcsoportot</p>
+                <Label className="text-muted-foreground ml-2">Izomcsoportok</Label>
+                <p className="text-xs text-muted-foreground ml-2">Válassz egy vagy több izomcsoportot</p>
                 <MuscleGroupSelector 
                   selected={editMuscleGroups} 
                   onChange={setEditMuscleGroups} 
@@ -466,8 +466,8 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-400 ml-2">Leírás / Végrehajtás</Label>
-                <Textarea name="description" defaultValue={editingExercise.description || ''} className="bg-background border-none rounded-2xl p-4 min-h-[100px]" />
+                <Label className="text-muted-foreground ml-2">Leírás / Végrehajtás</Label>
+                <Textarea name="description" defaultValue={editingExercise.description || ''} className="bg-background border-none rounded-lg p-4 min-h-[100px]" />
               </div>
               <DialogFooter className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between w-full">
                 <Button type="button" variant="ghost" onClick={() => handleDelete(editingExercise.id)} className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive">
@@ -487,13 +487,13 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
       <div className="grid gap-4 md:grid-cols-2">
         {filteredExercises.length > 0 ? (
           filteredExercises.map((exercise: any) => (
-            <Card key={exercise.id} className="bg-card border-none shadow-md rounded-3xl overflow-hidden group cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all"
+            <Card key={exercise.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden group cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all"
               onClick={() => openEditDialog(exercise)}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex items-center gap-2">
-                      <h3 className="min-w-0 break-words text-lg font-bold leading-tight text-zinc-100">{exercise.name}</h3>
+                      <h3 className="min-w-0 break-words text-lg font-bold leading-tight text-foreground">{exercise.name}</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {exercise.category && (
@@ -510,20 +510,20 @@ export function ExercisesView({ exercises, customCategories }: { exercises: any[
                       )}
                     </div>
                     {exercise.description && (
-                      <p className="text-sm text-zinc-500 line-clamp-2 mt-1">{exercise.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{exercise.description}</p>
                     )}
                   </div>
-                  <Pencil className="w-4 h-4 text-zinc-600 group-hover:text-primary transition-colors ml-4 mt-1 shrink-0" />
+                  <Pencil className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors ml-4 mt-1 shrink-0" />
                 </div>
               </CardContent>
             </Card>
           ))
         ) : (
           <div className="col-span-2">
-            <Card className="bg-card border-none border-dashed rounded-3xl">
+            <Card className="bg-card border-none border-dashed rounded-lg">
               <CardContent className="flex flex-col items-center justify-center p-12 text-center">
                 <Dumbbell className="h-12 w-12 text-zinc-700 mb-4" />
-                <p className="text-zinc-500">
+                <p className="text-muted-foreground">
                   {searchQuery || filterCategory !== 'all'
                     ? 'Nincs találat a szűrési feltételekre.'
                     : 'Még nincs gyakorlatod. Hozd létre az elsőt!'}

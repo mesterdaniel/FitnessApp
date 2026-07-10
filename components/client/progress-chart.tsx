@@ -16,10 +16,10 @@ export function ProgressChart({ data, exerciseName }: { data: any[], exerciseNam
     return (
       <Card className="bg-card border-none shadow-xl">
         <CardHeader>
-          <CardTitle className="text-zinc-100">Súlyterhelés alakulása</CardTitle>
-          <CardDescription className="text-zinc-400">Válassz ki egy gyakorlatot</CardDescription>
+          <CardTitle className="text-foreground">Súlyterhelés alakulása</CardTitle>
+          <CardDescription className="text-muted-foreground">Válassz ki egy gyakorlatot</CardDescription>
         </CardHeader>
-        <CardContent className="flex h-[300px] items-center justify-center text-zinc-500">
+        <CardContent className="flex h-[300px] items-center justify-center text-muted-foreground">
           Nincs elegendő adat a grafikon megjelenítéséhez.
         </CardContent>
       </Card>
@@ -29,8 +29,8 @@ export function ProgressChart({ data, exerciseName }: { data: any[], exerciseNam
   return (
     <Card className="bg-card border-none shadow-xl">
       <CardHeader>
-        <CardTitle className="text-zinc-100">Fejlődés: {exerciseName || 'Gyakorlat'}</CardTitle>
-        <CardDescription className="text-zinc-400">A feljegyzett eredményeid alakulása</CardDescription>
+        <CardTitle className="text-foreground">Fejlődés: {exerciseName || 'Gyakorlat'}</CardTitle>
+        <CardDescription className="text-muted-foreground">A feljegyzett eredményeid alakulása</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">

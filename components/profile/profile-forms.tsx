@@ -34,8 +34,8 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
   return (
     <Tabs defaultValue="general" className="w-full">
       <TabsList className="grid w-full grid-cols-2 mb-8 bg-card border-none rounded-full h-14 p-1">
-        <TabsTrigger value="general" className="rounded-full rounded-r-none h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-zinc-400 font-bold text-md">Általános & Fitness</TabsTrigger>
-        <TabsTrigger value="security" className="rounded-full rounded-l-none h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-zinc-400 font-bold text-md">Biztonság</TabsTrigger>
+        <TabsTrigger value="general" className="rounded-full rounded-r-none h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-bold text-md">Általános & Fitness</TabsTrigger>
+        <TabsTrigger value="security" className="rounded-full rounded-l-none h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-bold text-md">Biztonság</TabsTrigger>
       </TabsList>
 
       <TabsContent value="general">
@@ -43,17 +43,17 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
           <CardContent className="p-8">
             <form action={handleProfileSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-zinc-400 ml-2">Email cím (nem szerkeszthető)</Label>
+                <Label htmlFor="email" className="text-muted-foreground ml-2">Email cím (nem szerkeszthető)</Label>
                 <Input 
                   id="email" 
                   value={user.email} 
                   disabled 
-                  className="bg-background/50 border-none rounded-full h-12 px-6 text-zinc-500" 
+                  className="bg-background/50 border-none rounded-full h-12 px-6 text-muted-foreground" 
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="full_name" className="text-zinc-400 ml-2">Teljes név</Label>
+                <Label htmlFor="full_name" className="text-muted-foreground ml-2">Teljes név</Label>
                 <Input 
                   id="full_name" 
                   name="full_name" 
@@ -66,7 +66,7 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="weight_kg" className="text-zinc-400 ml-2">Testsúly (kg)</Label>
+                  <Label htmlFor="weight_kg" className="text-muted-foreground ml-2">Testsúly (kg)</Label>
                   <Input 
                     id="weight_kg" 
                     name="weight_kg" 
@@ -78,7 +78,7 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="height_cm" className="text-zinc-400 ml-2">Magasság (cm)</Label>
+                  <Label htmlFor="height_cm" className="text-muted-foreground ml-2">Magasság (cm)</Label>
                   <Input 
                     id="height_cm" 
                     name="height_cm" 
@@ -92,7 +92,7 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="birth_date" className="text-zinc-400 ml-2">Születési idő</Label>
+                  <Label htmlFor="birth_date" className="text-muted-foreground ml-2">Születési idő</Label>
                   <Input 
                     id="birth_date" 
                     name="birth_date" 
@@ -102,12 +102,12 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="gender" className="text-zinc-400 ml-2">Nem</Label>
+                  <Label htmlFor="gender" className="text-muted-foreground ml-2">Nem</Label>
                   <Select name="gender" defaultValue={profile?.gender || ""}>
                     <SelectTrigger className="bg-background border-none rounded-full h-12 px-6 w-full">
                       <SelectValue placeholder="Válassz..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
+                    <SelectContent className="bg-card border-none rounded-lg shadow-xl">
                       <SelectItem value="male" className="rounded-xl">Férfi</SelectItem>
                       <SelectItem value="female" className="rounded-xl">Nő</SelectItem>
                       <SelectItem value="other" className="rounded-xl">Egyéb</SelectItem>
@@ -117,12 +117,12 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fitness_level" className="text-zinc-400 ml-2">Edzettségi szint</Label>
+                <Label htmlFor="fitness_level" className="text-muted-foreground ml-2">Edzettségi szint</Label>
                 <Select name="fitness_level" defaultValue={profile?.fitness_level || ""}>
                   <SelectTrigger className="bg-background border-none rounded-full h-12 px-6 w-full">
                     <SelectValue placeholder="Milyen szinten állsz?" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-none rounded-2xl shadow-xl">
+                  <SelectContent className="bg-card border-none rounded-lg shadow-xl">
                     <SelectItem value="beginner" className="rounded-xl">Kezdő</SelectItem>
                     <SelectItem value="intermediate" className="rounded-xl">Középhaladó</SelectItem>
                     <SelectItem value="advanced" className="rounded-xl">Haladó</SelectItem>
@@ -132,12 +132,12 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role" className="text-zinc-400 ml-2">Szerepkör</Label>
+                <Label htmlFor="role" className="text-muted-foreground ml-2">Szerepkör</Label>
                 <Input 
                   id="role" 
                   value={profile?.role === 'trainer' ? 'Edző' : profile?.role === 'admin' ? 'Adminisztrátor' : 'Kliens'} 
                   disabled 
-                  className="bg-background/50 border-none rounded-full h-12 px-6 text-zinc-500 font-semibold" 
+                  className="bg-background/50 border-none rounded-full h-12 px-6 text-muted-foreground font-semibold" 
                 />
               </div>
 
@@ -155,11 +155,11 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
             <form id="password-form" action={handlePasswordSubmit} className="space-y-6">
               <div>
                 <h3 className="text-xl font-bold mb-2">Jelszó Változtatás</h3>
-                <p className="text-zinc-400 text-sm mb-6">Adj meg egy új, erős jelszót a fiókodhoz. Legalább 6 karakter.</p>
+                <p className="text-muted-foreground text-sm mb-6">Adj meg egy új, erős jelszót a fiókodhoz. Legalább 6 karakter.</p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-zinc-400 ml-2">Új jelszó</Label>
+                <Label htmlFor="password" className="text-muted-foreground ml-2">Új jelszó</Label>
                 <Input 
                   id="password" 
                   name="password" 
@@ -172,7 +172,7 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password_confirm" className="text-zinc-400 ml-2">Új jelszó megerősítése</Label>
+                <Label htmlFor="password_confirm" className="text-muted-foreground ml-2">Új jelszó megerősítése</Label>
                 <Input 
                   id="password_confirm" 
                   name="password_confirm" 

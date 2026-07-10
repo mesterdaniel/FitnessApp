@@ -153,7 +153,7 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-card">
-          <Bell className="h-5 w-5 text-zinc-400" />
+          <Bell className="h-5 w-5 text-muted-foreground" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -161,7 +161,7 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 bg-card border-none rounded-2xl shadow-xl p-2 z-50">
+      <DropdownMenuContent align="end" className="w-80 bg-card border-none rounded-lg shadow-xl p-2 z-50">
         <div className="flex items-center justify-between px-3 py-2">
           <h3 className="font-bold text-sm">Értesítések</h3>
           <div className="flex gap-1">
@@ -186,7 +186,7 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
         <DropdownMenuSeparator className="bg-zinc-800" />
         <div className="max-h-[300px] overflow-y-auto space-y-1 mt-2">
           {notifications.length === 0 ? (
-            <div className="py-6 text-center text-zinc-500 text-sm">
+            <div className="py-6 text-center text-muted-foreground text-sm">
               Nincs új értesítésed.
             </div>
           ) : (
@@ -197,11 +197,11 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
                 onClick={() => handleNotificationClick(notif)}
               >
                 <div className="flex items-center justify-between w-full">
-                  <span className={`text-sm font-semibold ${!notif.read_at ? 'text-primary' : 'text-zinc-300'}`}>{notif.title}</span>
+                  <span className={`text-sm font-semibold ${!notif.read_at ? 'text-primary' : 'text-muted-foreground'}`}>{notif.title}</span>
                   {!notif.read_at && <span className="w-2 h-2 rounded-full bg-primary shrink-0"></span>}
                 </div>
-                <p className="text-xs text-zinc-400 line-clamp-2">{notif.message}</p>
-                <span className="text-[10px] text-zinc-500 mt-1">
+                <p className="text-xs text-muted-foreground line-clamp-2">{notif.message}</p>
+                <span className="text-[10px] text-muted-foreground mt-1">
                   {new Date(notif.created_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
               </DropdownMenuItem>

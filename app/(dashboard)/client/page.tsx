@@ -84,12 +84,12 @@ export default async function ClientDashboardPage() {
     <div className="space-y-6 max-w-4xl mx-auto pb-24">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Kliens Áttekintés</h1>
-        <p className="text-zinc-400">Szia! Itt látod a következő fontos teendőket és az edzéseidet.</p>
+        <p className="text-muted-foreground">Szia! Itt látod a következő fontos teendőket és az edzéseidet.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Link href="/client/workouts">
-          <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-3xl hover:scale-[1.02] transition-transform cursor-pointer">
+          <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-lg hover:scale-[1.02] transition-transform cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Következő edzés</CardTitle>
               <Dumbbell className="h-4 w-4 opacity-80" />
@@ -108,34 +108,34 @@ export default async function ClientDashboardPage() {
         </Link>
 
         <Link href="/client/workouts">
-          <Card className="bg-card border-none rounded-3xl shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">Összes edzésed</CardTitle>
-              <CalendarCheck className="h-4 w-4 text-zinc-400" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Összes edzésed</CardTitle>
+              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="break-words text-2xl font-bold text-zinc-100">{upcomingWorkouts?.length || 0}</div>
-              <p className="text-xs text-zinc-500 mt-1">Közelgő edzés</p>
+              <div className="break-words text-2xl font-bold text-foreground">{upcomingWorkouts?.length || 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">Közelgő edzés</p>
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/chat">
-          <Card className="bg-card border-none rounded-3xl shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">Új üzenetek</CardTitle>
-              <MessageSquare className="h-4 w-4 text-zinc-400" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Új üzenetek</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="break-words text-2xl font-bold text-red-400">{unreadMessagesCount}</div>
-              <p className="text-xs text-zinc-500 mt-1">Olvasatlan üzenet</p>
+              <p className="text-xs text-muted-foreground mt-1">Olvasatlan üzenet</p>
             </CardContent>
           </Card>
         </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="bg-card border-none shadow-md rounded-3xl">
+        <Card className="bg-card border-none shadow-md rounded-lg">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -144,16 +144,16 @@ export default async function ClientDashboardPage() {
               <div>
                 <h3 className="font-bold">Aktív Bérlet</h3>
                 {activePass ? (
-                  <p className="text-sm text-zinc-400">Még {activePass.total_occasions - activePass.used_occasions} alkalom felhasználható.</p>
+                  <p className="text-sm text-muted-foreground">Még {activePass.total_occasions - activePass.used_occasions} alkalom felhasználható.</p>
                 ) : (
-                  <p className="text-sm text-zinc-400">Nincs aktív bérleted.</p>
+                  <p className="text-sm text-muted-foreground">Nincs aktív bérleted.</p>
                 )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-none shadow-md rounded-3xl overflow-hidden relative">
+        <Card className="bg-card border-none shadow-md rounded-lg overflow-hidden relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Zap className="h-24 w-24 text-primary" />
           </div>
@@ -162,11 +162,11 @@ export default async function ClientDashboardPage() {
               <div>
                 <h3 className="font-bold mb-1">Gyors Jelentkezés</h3>
                 {nextAvailableWorkout ? (
-                  <p className="text-sm text-zinc-400">
+                  <p className="text-sm text-muted-foreground">
                     {new Date(nextAvailableWorkout.starts_at).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} - {nextAvailableWorkout.title}
                   </p>
                 ) : (
-                  <p className="text-sm text-zinc-400">Nincs elérhető edzés.</p>
+                  <p className="text-sm text-muted-foreground">Nincs elérhető edzés.</p>
                 )}
               </div>
               {nextAvailableWorkout && (
@@ -188,27 +188,27 @@ export default async function ClientDashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-1">
-        <Card className="bg-card border-none shadow-md rounded-3xl">
+        <Card className="bg-card border-none shadow-md rounded-lg">
           <CardContent className="p-6">
             <h3 className="font-bold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-yellow-500" /> Kitüntetéseid</h3>
             <div className="flex flex-wrap gap-4">
-              <div className="flex flex-col items-center justify-center p-4 bg-background rounded-2xl border border-zinc-800 w-28 text-center">
-                <span className="text-2xl font-bold text-zinc-100">{completedWorkoutsCount || 0}</span>
-                <span className="text-xs text-zinc-500 mt-1">Elvégzett edzés</span>
+              <div className="flex flex-col items-center justify-center p-4 bg-background rounded-lg border border-zinc-800 w-28 text-center">
+                <span className="text-2xl font-bold text-foreground">{completedWorkoutsCount || 0}</span>
+                <span className="text-xs text-muted-foreground mt-1">Elvégzett edzés</span>
               </div>
               {getBadges(completedWorkoutsCount || 0).map((badge, idx) => {
                 const Icon = badge.icon
                 return (
-                  <div key={idx} className="flex flex-col items-center justify-center p-4 bg-background rounded-2xl border border-zinc-800 w-28 text-center">
+                  <div key={idx} className="flex flex-col items-center justify-center p-4 bg-background rounded-lg border border-zinc-800 w-28 text-center">
                     <div className={`p-2 rounded-full mb-2 ${badge.color}`}>
                       <Icon className="w-6 h-6" />
                     </div>
-                    <span className="text-xs font-bold text-zinc-300">{badge.name}</span>
+                    <span className="text-xs font-bold text-muted-foreground">{badge.name}</span>
                   </div>
                 )
               })}
               {(!completedWorkoutsCount || completedWorkoutsCount === 0) && (
-                <div className="flex flex-col justify-center text-sm text-zinc-500 italic p-4">
+                <div className="flex flex-col justify-center text-sm text-muted-foreground italic p-4">
                   Végezz el egy edzést az első kitüntetéshez!
                 </div>
               )}
@@ -223,14 +223,14 @@ export default async function ClientDashboardPage() {
           upcomingWorkouts.map((workout: any) => {
             const myStatus = workout.workout_participants?.[0]?.status || 'pending'
             return (
-            <Card key={workout.id} className="bg-card border-none shadow-md rounded-3xl overflow-hidden">
+            <Card key={workout.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden">
               <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mr-4 shrink-0">
                   <Dumbbell className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="break-words font-semibold leading-tight text-zinc-100">{workout.title}</h3>
-                  <p className="break-words text-sm text-zinc-400">
+                  <h3 className="break-words font-semibold leading-tight text-foreground">{workout.title}</h3>
+                  <p className="break-words text-sm text-muted-foreground">
                     {new Date(workout.starts_at).toLocaleString('hu-HU', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • Edző: {workout.profiles?.full_name || 'Ismeretlen'}
                   </p>
                 </div>
@@ -244,10 +244,10 @@ export default async function ClientDashboardPage() {
             )
           })
         ) : (
-          <Card className="bg-card border-none border-dashed rounded-3xl">
+          <Card className="bg-card border-none border-dashed rounded-lg">
             <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-              <CalendarCheck className="h-12 w-12 text-zinc-600 mb-4" />
-              <p className="text-zinc-400">Nincs még betervezett edzésed. Menj az Edzések menübe és jelentkezz egyre!</p>
+              <CalendarCheck className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Nincs még betervezett edzésed. Menj az Edzések menübe és jelentkezz egyre!</p>
             </CardContent>
           </Card>
         )}

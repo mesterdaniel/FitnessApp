@@ -67,7 +67,7 @@ export default async function CoachClientsPage() {
     <div className="space-y-6 max-w-4xl mx-auto pb-24">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Kliensek kezelése</h1>
-        <p className="text-zinc-400">A hozzád tartozó ügyfelek, akik foglaltak nálad edzést.</p>
+        <p className="text-muted-foreground">A hozzád tartozó ügyfelek, akik foglaltak nálad edzést.</p>
       </div>
 
       <CoachClientsView clients={clientsWithStats} />

@@ -11,9 +11,9 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 
       {/* Animated decorative shapes */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-[30%] -right-[15%] h-[60vw] w-[60vw] rounded-full bg-[oklch(0.75_0.12_90)] opacity-[0.04] blur-3xl" />
-        <div className="absolute -bottom-[20%] -left-[15%] h-[50vw] w-[50vw] rounded-full bg-[oklch(0.75_0.12_90)] opacity-[0.03] blur-3xl" />
-        <div className="absolute top-[20%] left-[60%] h-[25vw] w-[25vw] rounded-full bg-[oklch(0.60_0.15_140)] opacity-[0.03] blur-3xl" />
+        <div className="absolute -top-[30%] -right-[15%] h-[60vw] w-[60vw] rounded-full bg-primary opacity-[0.04] blur-3xl" />
+        <div className="absolute -bottom-[20%] -left-[15%] h-[50vw] w-[50vw] rounded-full bg-primary opacity-[0.03] blur-3xl" />
+        <div className="absolute top-[20%] left-[60%] h-[25vw] w-[25vw] rounded-full bg-chart-2 opacity-[0.03] blur-3xl" />
       </div>
 
       {/* Subtle grid pattern */}
@@ -28,12 +28,12 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo/Brand */}
         <Link href="/" className="mb-8 flex items-center justify-center gap-3 group">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[oklch(0.75_0.12_90)] shadow-lg shadow-[oklch(0.75_0.12_90)]/20 transition-transform group-hover:scale-105">
-            <Dumbbell className="h-6 w-6 text-[oklch(0.145_0_0)]" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
+            <Dumbbell className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <p className="text-lg font-bold text-zinc-100 tracking-tight">Fitness Coaching</p>
-            <p className="text-xs text-zinc-500">Edzői platform</p>
+            <p className="text-lg font-bold text-foreground tracking-tight">Fitness Coaching</p>
+            <p className="text-xs text-muted-foreground">Edzői platform</p>
           </div>
         </Link>
 

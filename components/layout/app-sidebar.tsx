@@ -73,22 +73,22 @@ export function AppSidebar({ role, userId }: { role: string, userId?: string }) 
   }
 
   return (
-    <Sidebar variant="inset" className="border-r border-zinc-800/80 bg-zinc-950">
+    <Sidebar variant="inset" className="border-r border-zinc-800/80 bg-background">
       <SidebarHeader className="p-3">
-        <div className="flex h-14 items-center gap-3 rounded-2xl bg-card px-3 shadow-sm">
+        <div className="flex h-14 items-center gap-3 rounded-lg bg-card px-3 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20">
             <Dumbbell className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="truncate text-sm font-bold text-zinc-100">FitCoach</div>
-            <div className="text-xs text-zinc-500">Coaching platform</div>
+            <div className="truncate text-sm font-bold text-foreground">FitCoach</div>
+            <div className="text-xs text-muted-foreground">Coaching platform</div>
           </div>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="px-3 text-[11px] uppercase tracking-wide text-zinc-500">
+          <SidebarGroupLabel className="px-3 text-[11px] uppercase tracking-wide text-muted-foreground">
             Menü
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -104,7 +104,7 @@ export function AppSidebar({ role, userId }: { role: string, userId?: string }) 
                       size="lg"
                       tooltip={item.title}
                       className={cn(
-                        "h-11 rounded-2xl px-3 text-zinc-400 hover:bg-card hover:text-zinc-100",
+                        "h-11 rounded-lg px-3 text-muted-foreground hover:bg-card hover:text-foreground",
                         active && "bg-primary/15 text-primary shadow-sm hover:bg-primary/20 hover:text-primary"
                       )}
                     >
@@ -131,7 +131,7 @@ export function AppSidebar({ role, userId }: { role: string, userId?: string }) 
               <SidebarMenuButton
                 type="submit"
                 size="lg"
-                className="h-11 rounded-2xl px-3 text-zinc-400 hover:bg-destructive/10 hover:text-red-300"
+                className="h-11 rounded-lg px-3 text-muted-foreground hover:bg-destructive/10 hover:text-red-300"
               >
                 <LogOut className="h-4 w-4" />
                 <span>Kijelentkezés</span>

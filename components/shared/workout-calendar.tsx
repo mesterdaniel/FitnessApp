@@ -71,7 +71,7 @@ export function WorkoutCalendar({ workouts, onDayClick }: {
   while (cells.length % 7 !== 0) cells.push(null)
 
   return (
-    <Card className="bg-card border-none shadow-md rounded-3xl overflow-hidden">
+    <Card className="bg-card border-none shadow-md rounded-lg overflow-hidden">
       <CardContent className="p-4 sm:p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -92,7 +92,7 @@ export function WorkoutCalendar({ workouts, onDayClick }: {
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {DAYS_HU.map(day => (
-            <div key={day} className="text-center text-xs font-bold text-zinc-500 py-2">
+            <div key={day} className="text-center text-xs font-bold text-muted-foreground py-2">
               {day}
             </div>
           ))}
@@ -115,10 +115,10 @@ export function WorkoutCalendar({ workouts, onDayClick }: {
                 key={day}
                 onClick={() => onDayClick?.(dateStr, dayWorkouts)}
                 className={`
-                  aspect-square rounded-xl sm:rounded-2xl flex flex-col items-center justify-center relative transition-all text-xs sm:text-sm
+                  aspect-square rounded-xl sm:rounded-lg flex flex-col items-center justify-center relative transition-all text-xs sm:text-sm
                   ${isToday ? 'bg-primary text-primary-foreground font-bold shadow-md shadow-primary/30' : ''}
-                  ${!isToday && hasWorkouts ? 'bg-primary/10 text-zinc-100 font-semibold' : ''}
-                  ${!isToday && !hasWorkouts ? 'text-zinc-400 hover:bg-background/50' : ''}
+                  ${!isToday && hasWorkouts ? 'bg-primary/10 text-foreground font-semibold' : ''}
+                  ${!isToday && !hasWorkouts ? 'text-muted-foreground hover:bg-background/50' : ''}
                   ${hasWorkouts ? 'cursor-pointer hover:scale-105' : ''}
                 `}
               >

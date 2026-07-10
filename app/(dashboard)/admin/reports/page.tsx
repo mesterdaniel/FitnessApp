@@ -73,9 +73,9 @@ export default async function AdminReportsPage() {
             <BarChart3 className="w-4 h-4 mr-2" /> Analitika
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight text-white drop-shadow-sm">Riportok és Statisztikák</h1>
-          <p className="text-zinc-400 text-lg">Valós idejű platform aktivitási mutatók a vezetői döntésekhez.</p>
+          <p className="text-muted-foreground text-lg">Valós idejű platform aktivitási mutatók a vezetői döntésekhez.</p>
         </div>
-        <Button asChild className="w-fit rounded-full bg-zinc-900 border border-white/10 text-white hover:bg-zinc-800 font-bold px-6 shadow-xl transition-all">
+        <Button asChild className="w-fit rounded-full bg-card border border-white/10 text-white hover:bg-zinc-800 font-bold px-6 shadow-xl transition-all">
           <Link href="/admin">Vissza a pultra</Link>
         </Button>
       </div>
@@ -97,7 +97,7 @@ function ReportCard({
   value,
   icon: Icon,
   highlight,
-  color = 'text-zinc-400',
+  color = 'text-muted-foreground',
   bg = 'bg-white/5',
   border = 'border-white/5'
 }: {
@@ -110,9 +110,9 @@ function ReportCard({
   border?: string
 }) {
   return (
-    <Card className={`relative overflow-hidden rounded-[2rem] border ${highlight ? 'border-yellow-500/50 bg-yellow-500/10' : `bg-zinc-950/50 ${border}`} backdrop-blur-xl shadow-xl transition-transform hover:scale-[1.02] duration-300`}>
+    <Card className={`relative overflow-hidden rounded-[2rem] border ${highlight ? 'border-yellow-500/50 bg-yellow-500/10' : `bg-background/50 ${border}`} backdrop-blur-xl shadow-xl transition-transform hover:scale-[1.02] duration-300`}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className={`text-sm font-medium ${highlight ? 'text-yellow-500' : 'text-zinc-400'}`}>{title}</CardTitle>
+        <CardTitle className={`text-sm font-medium ${highlight ? 'text-yellow-500' : 'text-muted-foreground'}`}>{title}</CardTitle>
         <div className={`p-2 rounded-xl ${highlight ? 'bg-yellow-500/20 text-yellow-500' : `${bg} ${color}`}`}>
           <Icon className="h-4 w-4" />
         </div>
