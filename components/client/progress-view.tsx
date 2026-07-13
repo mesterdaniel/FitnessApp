@@ -6,11 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Trophy, Flame, Scale, TrendingDown, TrendingUp } from "lucide-react"
+import { Plus, Trophy, Flame, Scale, TrendingDown, TrendingUp, Trash2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { addExerciseLog, addWeightLog } from "@/app/(dashboard)/client/progress/actions"
+import { addExerciseLog, addWeightLog, deleteExerciseLog, deleteWeightLog } from "@/app/(dashboard)/client/progress/actions"
 import { useRouter } from "next/navigation"
 
 const getBadges = (count: number) => {
@@ -28,6 +28,7 @@ export function ProgressView({ logs, weightLogs, completedWorkoutsCount = 0 }: {
   const [weightDialogOpen, setWeightDialogOpen] = useState(false)
   const [exerciseError, setExerciseError] = useState("")
   const [weightError, setWeightError] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
   
   // Extract unique exercises
   const exercises = Array.from(new Set(logs.map(log => log.exercise_name)))
@@ -80,6 +81,24 @@ export function ProgressView({ logs, weightLogs, completedWorkoutsCount = 0 }: {
     }
     setWeightDialogOpen(false)
     router.refresh()
+  }
+
+  const handleDeleteExercise = async (id: string) => {
+    if (!confirm("Biztosan törlöd ezt az eredményt?")) return
+    setIsDeleting(true)
+    const result = await deleteExerciseLog(id)
+    if (result?.error) alert(result.error)
+    else router.refresh()
+    setIsDeleting(false)
+  }
+
+  const handleDeleteWeight = async (id: string) => {
+    if (!confirm("Biztosan törlöd ezt a mérést?")) return
+    setIsDeleting(true)
+    const result = await deleteWeightLog(id)
+    if (result?.error) alert(result.error)
+    else router.refresh()
+    setIsDeleting(false)
   }
 
   return (
@@ -208,6 +227,15 @@ export function ProgressView({ logs, weightLogs, completedWorkoutsCount = 0 }: {
                       <div className="bg-primary/10 text-primary px-4 py-2 rounded-full font-bold">
                         {log.weight} kg
                       </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-destructive hover:bg-destructive/10 rounded-full"
+                        onClick={() => handleDeleteExercise(log.id)}
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -219,7 +247,7 @@ export function ProgressView({ logs, weightLogs, completedWorkoutsCount = 0 }: {
         {/* TESTSÚLY TAB */}
         <TabsContent value="weight" className="space-y-6 mt-6">
           <div className="grid gap-4 md:grid-cols-3">
-            <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-lg">
+            <Card className="bg-card border border-primary/20 text-foreground shadow-lg shadow-primary/20 rounded-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">Jelenlegi testsúly</CardTitle>
                 <Scale className="h-4 w-4 opacity-80" />
@@ -302,8 +330,19 @@ export function ProgressView({ logs, weightLogs, completedWorkoutsCount = 0 }: {
                     <div className="font-semibold">
                       {new Date(log.logged_at).toLocaleDateString('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </div>
-                    <div className="bg-primary/10 text-primary px-4 py-2 rounded-full font-bold">
-                      {parseFloat(log.weight_kg)} kg
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 text-primary px-4 py-2 rounded-full font-bold">
+                        {parseFloat(log.weight_kg)} kg
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-destructive hover:bg-destructive/10 rounded-full"
+                        onClick={() => handleDeleteWeight(log.id)}
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}

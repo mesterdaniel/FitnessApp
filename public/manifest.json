@@ -1,7 +1,7 @@
 {
-  "name": "Fitness Coach",
-  "short_name": "Fitness",
-  "description": "Premium Fitness Coaching Platform",
+  "name": "Tatárka Dénes Edzés & Étrend",
+  "short_name": "Tatárka Dénes",
+  "description": "Prémium Fitness és Étrend Platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",

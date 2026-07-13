@@ -53,7 +53,7 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-lg">
+        <Card className="bg-card border border-primary/20 text-foreground shadow-lg shadow-primary/20 rounded-lg">
           <CardContent className="p-5 flex items-center gap-4">
             <Users className="h-8 w-8 opacity-80" />
             <div>

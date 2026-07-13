@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { MessageCircle, Plus, Search, ChevronRight } from 'lucide-react'
-import { getOrCreateConversation } from '@/app/(dashboard)/chat/actions'
+import { MessageCircle, Plus, Search, ChevronRight, Trash2 } from 'lucide-react'
+import { getOrCreateConversation, deleteConversation } from '@/app/(dashboard)/chat/actions'
 import { useRouter } from 'next/navigation'
 
 export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
@@ -31,13 +31,25 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
     }
   }
 
+  const handleDeleteConversation = async (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation()
+    if (confirm('Biztosan törölni szeretnéd ezt a beszélgetést? Minden üzenet elvész!')) {
+      const res = await deleteConversation(conversationId)
+      if (res.error) {
+        alert('Hiba: ' + res.error)
+      }
+    }
+  }
+
   const filteredConversations = conversations.filter(c =>
     c.otherUser?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredUsers = allUsers.filter(u =>
-    u.full_name?.toLowerCase().includes(userSearch.toLowerCase())
-  )
+  const filteredUsers = allUsers.filter(u => {
+    const matchesSearch = u.full_name?.toLowerCase().includes(userSearch.toLowerCase());
+    const isVisibleForRole = userRole === 'client' ? (u.role === 'trainer' || u.role === 'admin') : true;
+    return matchesSearch && isVisibleForRole;
+  })
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -145,7 +157,20 @@ export function ChatView({ conversations, currentUserId, allUsers, userRole }: {
                       {new Date(conv.lastMessage.created_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })}
                     </span>
                   )}
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex items-center gap-1 mt-auto">
+                    {(userRole === 'trainer' || userRole === 'admin') && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={(e) => handleDeleteConversation(e, conv.id)}
+                        title="Beszélgetés törlése"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </div>
               </CardContent>
             </Card>

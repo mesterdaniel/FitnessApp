@@ -377,6 +377,118 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
     )
   }
 
+  const renderWorkoutCard = (workout: any) => (
+    <Card key={workout.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden">
+      <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+        <div className="min-w-0 flex-1 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="min-w-0 break-words text-xl font-bold leading-tight text-foreground">{workout.title}</h3>
+            <div className={`px-3 py-0.5 rounded-full text-xs font-bold ${
+              workout.status === 'scheduled' ? 'bg-primary/20 text-primary' : 'bg-zinc-800 text-muted-foreground'
+            }`}>
+              {workout.status}
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <CalendarDays className="w-4 h-4" />
+              {new Date(workout.starts_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })}
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              {new Date(workout.starts_at).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })} ({workout.duration_min} perc)
+            </div>
+            {workout.location && (
+              <div className="flex items-center gap-1">
+                <MapPin className="w-4 h-4" />
+                {workout.location}
+              </div>
+            )}
+            <div className="flex items-center gap-1">
+              <Users className="w-4 h-4" />
+              {workout.workout_participants?.filter((p: any) => p.status === 'accepted').length || 0}/{workout.capacity || 1} fő
+            </div>
+          </div>
+          {workout.notes && (
+            <p className="text-sm text-muted-foreground mt-1 italic border-l-2 border-primary/50 pl-3">"{workout.notes}"</p>
+          )}
+
+          {/* Workout exercises */}
+          {workout.workout_exercises && workout.workout_exercises.length > 0 && (
+            <div className="mt-3 bg-background/30 rounded-lg p-4 border border-zinc-800/50">
+              <h4 className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider">Edzésterv</h4>
+              <div className="flex flex-col gap-2 relative">
+                {workout.workout_exercises
+                  .slice()
+                  .sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0))
+                  .map((we: any, index: number, arr: any[]) => {
+                    const isSupersetWithNext = we.is_superset
+                    const isSupersetWithPrev = index > 0 && arr[index - 1].is_superset
+
+                    return (
+                      <div key={we.id} className="flex flex-wrap items-center gap-2 group relative">
+                        {(isSupersetWithNext || isSupersetWithPrev) && (
+                          <div className={`absolute -left-3 w-1 bg-primary/50 rounded-full ${isSupersetWithNext && !isSupersetWithPrev ? 'top-2 bottom-[-1rem]' : isSupersetWithPrev && !isSupersetWithNext ? 'top-[-1rem] bottom-2' : 'top-[-1rem] bottom-[-1rem]'}`} />
+                        )}
+                        <span className="font-semibold text-foreground">
+                          {we.exercise_name}
+                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5 ml-2">
+                          <span className="px-2 py-0.5 bg-background border border-zinc-800 rounded-md text-xs font-medium text-muted-foreground">
+                            {we.sets} × {we.reps} {we.weight_target ? `@ ${we.weight_target}kg` : ''}
+                          </span>
+                          {(we.rpe || we.rir || we.rest_seconds) && (
+                            <div className="flex items-center gap-1 ml-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                              {we.rpe && <span className="px-1.5 py-0.5 bg-red-500/10 text-red-400 rounded text-[10px] font-bold">RPE {we.rpe}</span>}
+                              {we.rir !== null && <span className="px-1.5 py-0.5 bg-orange-500/10 text-orange-400 rounded text-[10px] font-bold">RIR {we.rir}</span>}
+                              {we.rest_seconds && <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[10px] font-bold">{we.rest_seconds}mp pihenő</span>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* Participants */}
+          {workout.workout_participants && workout.workout_participants.length > 0 && (
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-muted-foreground font-semibold">Jelentkezők:</p>
+              {workout.workout_participants.map((p: any) => (
+                <div key={p.id} className="flex flex-wrap items-center gap-2 text-sm">
+                  <User className="w-3 h-3 text-muted-foreground" />
+                  <span className={p.status === 'accepted' ? 'text-green-400' : p.status === 'rejected' ? 'text-red-400' : 'text-yellow-400'}>
+                    {p.profiles?.full_name || 'Ismeretlen'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">({p.status === 'accepted' ? 'Elfogadva' : p.status === 'rejected' ? 'Elutasítva' : 'Függőben'})</span>
+                  {p.status === 'pending' && (
+                    <div className="flex gap-2 mt-1 sm:mt-0 sm:ml-4">
+                      <Button onClick={() => handleStatusChange(p.id, 'accepted')} size="sm" className="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 rounded-full font-bold h-8 px-3">
+                        <Check className="w-4 h-4 mr-1.5" /> Elfogadom
+                      </Button>
+                      <Button onClick={() => handleStatusChange(p.id, 'rejected')} size="sm" variant="ghost" className="bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-full font-bold h-8 px-3">
+                        <X className="w-4 h-4 mr-1.5" /> Elutasítom
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2 shrink-0">
+          <Button onClick={() => openEditModal(workout)} variant="outline" className="rounded-full border-zinc-700 bg-transparent hover:bg-background">
+            Szerkesztés
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -549,131 +661,52 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
         </TabsList>
 
         <TabsContent value="list">
-          <div className="space-y-4">
-            {workouts && workouts.length > 0 ? (
-              workouts.map((workout) => (
-                <Card key={workout.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden">
-                  <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
-                    <div className="min-w-0 flex-1 space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="min-w-0 break-words text-xl font-bold leading-tight text-foreground">{workout.title}</h3>
-                        <div className={`px-3 py-0.5 rounded-full text-xs font-bold ${
-                          workout.status === 'scheduled' ? 'bg-primary/20 text-primary' : 'bg-zinc-800 text-muted-foreground'
-                        }`}>
-                          {workout.status}
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <CalendarDays className="w-4 h-4" />
-                          {new Date(workout.starts_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {new Date(workout.starts_at).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })} ({workout.duration_min} perc)
-                        </div>
-                        {workout.location && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            {workout.location}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {workout.workout_participants?.filter((p: any) => p.status === 'accepted').length || 0}/{workout.capacity || 1} fő
-                        </div>
-                      </div>
-                      {workout.notes && (
-                        <p className="text-sm text-muted-foreground mt-1 italic border-l-2 border-primary/50 pl-3">"{workout.notes}"</p>
-                      )}
-
-                      {/* Workout exercises */}
-                      {workout.workout_exercises && workout.workout_exercises.length > 0 && (
-                        <div className="mt-3 bg-background/30 rounded-lg p-4 border border-zinc-800/50">
-                          <h4 className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider">Edzésterv</h4>
-                          <div className="flex flex-col gap-2 relative">
-                            {workout.workout_exercises
-                              .slice()
-                              .sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0))
-                              .map((we: any, index: number, arr: any[]) => {
-                                const isSupersetWithNext = we.is_superset
-                                const isSupersetWithPrev = index > 0 && arr[index - 1].is_superset
-
-                                return (
-                                  <div key={we.id} className="flex flex-wrap items-center gap-2 group relative">
-                                    {(isSupersetWithNext || isSupersetWithPrev) && (
-                                      <div className={`absolute -left-3 w-1 bg-primary/50 rounded-full ${isSupersetWithNext && !isSupersetWithPrev ? 'top-2 bottom-[-1rem]' : isSupersetWithPrev && !isSupersetWithNext ? 'top-[-1rem] bottom-2' : 'top-[-1rem] bottom-[-1rem]'}`} />
-                                    )}
-                                    <span className="font-semibold text-foreground">
-                                      {we.exercise_name}
-                                    </span>
-                                    <div className="flex flex-wrap items-center gap-1.5 ml-2">
-                                      <span className="px-2 py-0.5 bg-background border border-zinc-800 rounded-md text-xs font-medium text-muted-foreground">
-                                        {we.sets} × {we.reps} {we.weight_target ? `@ ${we.weight_target}kg` : ''}
-                                      </span>
-                                      {(we.rpe || we.rir || we.rest_seconds) && (
-                                        <div className="flex items-center gap-1 ml-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                                          {we.rpe && <span className="px-1.5 py-0.5 bg-red-500/10 text-red-400 rounded text-[10px] font-bold">RPE {we.rpe}</span>}
-                                          {we.rir !== null && <span className="px-1.5 py-0.5 bg-orange-500/10 text-orange-400 rounded text-[10px] font-bold">RIR {we.rir}</span>}
-                                          {we.rest_seconds && <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[10px] font-bold">{we.rest_seconds}mp pihenő</span>}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Participants */}
-                      {workout.workout_participants && workout.workout_participants.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          <p className="text-xs text-muted-foreground font-semibold">Jelentkezők:</p>
-                          {workout.workout_participants.map((p: any) => (
-                            <div key={p.id} className="flex flex-wrap items-center gap-2 text-sm">
-                              <User className="w-3 h-3 text-muted-foreground" />
-                              <span className={p.status === 'accepted' ? 'text-green-400' : p.status === 'rejected' ? 'text-red-400' : 'text-yellow-400'}>
-                                {p.profiles?.full_name || 'Ismeretlen'}
-                              </span>
-                              <span className="text-xs text-muted-foreground">({p.status === 'accepted' ? 'Elfogadva' : p.status === 'rejected' ? 'Elutasítva' : 'Függőben'})</span>
-                              {p.status === 'pending' && (
-                                <div className="flex gap-2 mt-1 sm:mt-0 sm:ml-4">
-                                  <Button onClick={() => handleStatusChange(p.id, 'accepted')} size="sm" className="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 rounded-full font-bold h-8 px-3">
-                                    <Check className="w-4 h-4 mr-1.5" /> Elfogadom
-                                  </Button>
-                                  <Button onClick={() => handleStatusChange(p.id, 'rejected')} size="sm" variant="ghost" className="bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-full font-bold h-8 px-3">
-                                    <X className="w-4 h-4 mr-1.5" /> Elutasítom
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-2 shrink-0">
-                      <Button onClick={() => openEditModal(workout)} variant="outline" className="rounded-full border-zinc-700 bg-transparent hover:bg-background">
-                        Szerkesztés
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Card className="bg-card border-none border-dashed rounded-lg">
-                <CardContent className="flex flex-col items-center justify-center p-16 text-center">
-                  <CalendarDays className="h-16 w-16 text-zinc-700 mb-4" />
-                  <h2 className="text-xl font-bold text-muted-foreground mb-2">Nincs edzés betervezve</h2>
-                  <p className="text-muted-foreground max-w-md">
-                    Jelenleg nincsenek kiírt edzéseid az ügyfeleid számára.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-card border-none rounded-full p-1 mb-4 sm:w-fit">
+              <TabsTrigger value="upcoming" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
+                Közelgő edzések
+              </TabsTrigger>
+              <TabsTrigger value="past" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-6">
+                Múltbeli edzések
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upcoming">
+              <div className="space-y-4">
+                {workouts && workouts.filter(w => new Date(w.starts_at) >= new Date()).length > 0 ? (
+                  workouts.filter(w => new Date(w.starts_at) >= new Date()).map(renderWorkoutCard)
+                ) : (
+                  <Card className="bg-card border-none border-dashed rounded-lg">
+                    <CardContent className="flex flex-col items-center justify-center p-16 text-center">
+                      <CalendarDays className="h-16 w-16 text-zinc-700 mb-4" />
+                      <h2 className="text-xl font-bold text-muted-foreground mb-2">Nincs közelgő edzés</h2>
+                      <p className="text-muted-foreground max-w-md">
+                        Jelenleg nincsenek kiírt edzéseid az ügyfeleid számára a jövőben.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="past">
+              <div className="space-y-4">
+                {workouts && workouts.filter(w => new Date(w.starts_at) < new Date()).length > 0 ? (
+                  workouts.filter(w => new Date(w.starts_at) < new Date()).map(renderWorkoutCard)
+                ) : (
+                  <Card className="bg-card border-none border-dashed rounded-lg">
+                    <CardContent className="flex flex-col items-center justify-center p-16 text-center">
+                      <Clock className="h-16 w-16 text-zinc-700 mb-4" />
+                      <h2 className="text-xl font-bold text-muted-foreground mb-2">Nincsenek múltbeli edzések</h2>
+                      <p className="text-muted-foreground max-w-md">
+                        Az elmúlt két hétben nem tartottál edzéseket. (A régebbiek automatikusan törlődnek).
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="calendar">

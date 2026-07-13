@@ -13,13 +13,13 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Fitness Coaching Platform",
+  title: "Tatárka Dénes Edzés & Étrend",
   description: "Edzések, kliensek és fejlődés követése egy helyen.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Fitness Coach",
+    title: "Tatárka Dénes Edzés & Étrend",
   },
 };
 

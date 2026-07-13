@@ -45,15 +45,32 @@ export async function updateProfile(formData: FormData) {
 export async function updatePassword(formData: FormData) {
   const supabase = await createClient()
 
+  const currentPassword = formData.get('current_password') as string
   const password = formData.get('password') as string
   const passwordConfirm = formData.get('password_confirm') as string
 
+  if (!currentPassword) {
+    return { error: 'A jelenlegi jelszó megadása kötelező!' }
+  }
+
   if (!password || password.length < 6) {
-    return { error: 'A jelszónak legalább 6 karakter hosszúnak kell lennie.' }
+    return { error: 'Az új jelszónak legalább 6 karakter hosszúnak kell lennie.' }
   }
 
   if (password !== passwordConfirm) {
-    return { error: 'A két jelszó nem egyezik!' }
+    return { error: 'A két új jelszó nem egyezik!' }
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !user.email) return { error: 'Nincs bejelentkezett felhasználó.' }
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword
+  })
+
+  if (signInError) {
+    return { error: 'A megadott jelenlegi jelszó helytelen!' }
   }
 
   const { error } = await supabase.auth.updateUser({

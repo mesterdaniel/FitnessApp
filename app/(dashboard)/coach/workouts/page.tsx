@@ -7,6 +7,15 @@ export default async function CoachWorkoutsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  // Auto-delete workouts older than 14 days
+  const twoWeeksAgo = new Date()
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+  await supabase
+    .from('workouts')
+    .delete()
+    .eq('trainer_id', user.id)
+    .lt('starts_at', twoWeeksAgo.toISOString())
+
   // Fetch workouts with participants and exercises
   const { data: workouts } = await supabase
     .from('workouts')

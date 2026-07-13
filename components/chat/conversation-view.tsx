@@ -131,7 +131,6 @@ export function ConversationView({ conversationId, messages: initialMessages, cu
         </Avatar>
         <div>
           <h2 className="font-bold text-foreground">{otherUser.full_name || 'Ismeretlen'}</h2>
-          <p className="text-xs text-muted-foreground">Online</p>
         </div>
       </div>
 

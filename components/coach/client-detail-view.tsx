@@ -112,7 +112,7 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-lg">
+        <Card className="bg-card border border-primary/20 text-foreground shadow-lg shadow-primary/20 rounded-lg">
           <CardContent className="p-4 text-center">
             <CalendarDays className="h-5 w-5 mx-auto opacity-80 mb-1" />
             <div className="text-2xl font-bold">{totalWorkouts}</div>

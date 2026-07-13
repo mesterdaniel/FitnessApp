@@ -88,11 +88,7 @@ export default async function ClientWorkoutsPage() {
   const combinedMyWorkoutIds = new Set(combinedMyWorkouts.map((workout: any) => workout.id))
   const availableWorkouts = (availableWorkoutsData || []).filter((workout) => {
     if (combinedMyWorkoutIds.has(workout.id)) return false
-    const reservedSeats = workout.workout_participants?.filter((participant: any) =>
-      participant.status === 'accepted' || participant.status === 'pending'
-    ).length || 0
-
-    return reservedSeats < (workout.capacity || 1)
+    return true
   })
 
   // Fetch active pass

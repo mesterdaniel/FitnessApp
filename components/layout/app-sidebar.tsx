@@ -79,9 +79,9 @@ export function AppSidebar({ role, userId }: { role: string, userId?: string }) 
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20">
             <Dumbbell className="h-5 w-5" />
           </div>
-          <div className="min-w-0">
-            <div className="truncate text-sm font-bold text-foreground">FitCoach</div>
-            <div className="text-xs text-muted-foreground">Coaching platform</div>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <div className="truncate text-sm font-bold text-foreground">Tatárka Dénes</div>
+            <div className="truncate text-xs text-muted-foreground">Edzés & Étrend</div>
           </div>
         </div>
       </SidebarHeader>

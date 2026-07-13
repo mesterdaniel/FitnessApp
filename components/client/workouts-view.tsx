@@ -206,14 +206,24 @@ export function ClientWorkoutsView({
 
         <div className="space-y-4">
           {filteredAvailableWorkouts.length > 0 ? (
-            filteredAvailableWorkouts.map((workout) => (
-              <Card key={workout.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden border-2 border-primary/20">
+            filteredAvailableWorkouts.map((workout) => {
+              const reservedSeats = workout.workout_participants?.filter((participant: any) =>
+                participant.status === 'accepted' || participant.status === 'pending'
+              ).length || 0;
+              const isFull = reservedSeats >= (workout.capacity || 1);
+
+              return (
+              <Card key={workout.id} className={`bg-card border-none shadow-md rounded-lg overflow-hidden border-2 ${isFull ? 'border-red-500/20 opacity-70' : 'border-primary/20'}`}>
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="min-w-0 break-words text-xl font-bold leading-tight text-foreground">{workout.title}</h3>
-                        <div className="shrink-0 px-3 py-0.5 rounded-full text-xs font-bold bg-primary/20 text-primary">Nyitott</div>
+                        {isFull ? (
+                          <div className="shrink-0 px-3 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-500">Betelve</div>
+                        ) : (
+                          <div className="shrink-0 px-3 py-0.5 rounded-full text-xs font-bold bg-primary/20 text-primary">Nyitott</div>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -240,7 +250,11 @@ export function ClientWorkoutsView({
                     </div>
 
                     <form action={bookWorkout.bind(null, workout.id)}>
-                      {hasActivePass ? (
+                      {isFull ? (
+                        <Button type="button" disabled className="rounded-full bg-zinc-800 text-muted-foreground font-bold px-6 w-full sm:w-auto">
+                          Megtelt
+                        </Button>
+                      ) : hasActivePass ? (
                         <Button type="submit" className="rounded-full bg-primary text-primary-foreground font-bold px-6 shadow-lg shadow-primary/20 w-full sm:w-auto">
                           <UserPlus className="w-4 h-4 mr-2" /> Jelentkezem
                         </Button>
@@ -253,7 +267,7 @@ export function ClientWorkoutsView({
                   </div>
                 </CardContent>
               </Card>
-            ))
+            }))
           ) : (
             <Card className="bg-card border-none border-dashed rounded-lg">
               <CardContent className="flex flex-col items-center justify-center p-12 text-center">

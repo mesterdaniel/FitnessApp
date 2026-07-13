@@ -53,6 +53,13 @@ export default async function ChatPage() {
           lastMessage: lastMsg?.[0] || null,
         })
       }
+
+      // Rendezés a legutóbbi üzenet dátuma alapján (legújabb felül)
+      conversations.sort((a, b) => {
+        const timeA = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : new Date(a.created_at).getTime()
+        const timeB = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : new Date(b.created_at).getTime()
+        return timeB - timeA
+      })
     }
   }
 

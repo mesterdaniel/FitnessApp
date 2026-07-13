@@ -132,3 +132,33 @@ export async function sendMessage(conversationId: string, content: string) {
 
   return { success: true }
 }
+
+export async function deleteConversation(conversationId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  // Check if user is part of the conversation
+  const { data: part } = await supabase
+    .from('conversation_participants')
+    .select('*')
+    .eq('conversation_id', conversationId)
+    .eq('profile_id', user.id)
+    .single()
+
+  if (!part) return { error: 'Nincs jogosultságod törölni ezt a beszélgetést' }
+
+  // Delete the conversation entirely (will cascade and delete messages/participants)
+  const { error } = await supabase
+    .from('conversations')
+    .delete()
+    .eq('id', conversationId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/chat')
+  return { success: true }
+}

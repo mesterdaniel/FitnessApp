@@ -157,6 +157,17 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
                 <h3 className="text-xl font-bold mb-2">Jelszó Változtatás</h3>
                 <p className="text-muted-foreground text-sm mb-6">Adj meg egy új, erős jelszót a fiókodhoz. Legalább 6 karakter.</p>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="current_password" className="text-muted-foreground ml-2">Jelenlegi jelszó</Label>
+                <Input 
+                  id="current_password" 
+                  name="current_password" 
+                  type="password"
+                  placeholder="******" 
+                  required 
+                  className="bg-background border-none rounded-full h-12 px-6" 
+                />
+              </div>
               
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-muted-foreground ml-2">Új jelszó</Label>

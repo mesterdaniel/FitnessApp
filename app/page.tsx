@@ -12,7 +12,7 @@ export default function Home() {
               <Dumbbell className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">Fitness Coaching</p>
+              <p className="text-sm font-semibold text-foreground">Tatárka Dénes Edzés & Étrend</p>
               <p className="text-xs text-muted-foreground">Edzői platform</p>
             </div>
           </div>

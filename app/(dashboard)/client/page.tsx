@@ -89,7 +89,7 @@ export default async function ClientDashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Link href="/client/workouts">
-          <Card className="bg-primary border-none text-primary-foreground shadow-lg shadow-primary/20 rounded-lg hover:scale-[1.02] transition-transform cursor-pointer">
+          <Card className="bg-card border border-primary/20 text-foreground shadow-lg shadow-primary/20 rounded-lg hover:scale-[1.02] transition-transform cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Következő edzés</CardTitle>
               <Dumbbell className="h-4 w-4 opacity-80" />

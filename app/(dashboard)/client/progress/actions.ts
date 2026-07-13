@@ -92,3 +92,46 @@ export async function addWeightLog(formData: FormData) {
   revalidatePath('/coach', 'layout')
   return { success: true }
 }
+
+export async function deleteExerciseLog(id: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { error } = await supabase
+    .from('exercise_logs')
+    .delete()
+    .eq('id', id)
+    .eq('client_id', user.id)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/client/progress')
+  revalidatePath('/coach', 'layout')
+  return { success: true }
+}
+
+export async function deleteWeightLog(id: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { error } = await supabase
+    .from('weight_logs')
+    .delete()
+    .eq('id', id)
+    .eq('client_id', user.id)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/client/progress')
+  revalidatePath('/profile')
+  revalidatePath('/coach', 'layout')
+  return { success: true }
+}
