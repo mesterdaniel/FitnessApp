@@ -267,7 +267,8 @@ export function ClientWorkoutsView({
                   </div>
                 </CardContent>
               </Card>
-            }))
+            );
+          })
           ) : (
             <Card className="bg-card border-none border-dashed rounded-lg">
               <CardContent className="flex flex-col items-center justify-center p-12 text-center">
