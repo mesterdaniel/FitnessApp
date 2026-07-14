@@ -51,16 +51,53 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // protect routes
-  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
-  const isClientRoute = request.nextUrl.pathname.startsWith('/client')
-  const isCoachRoute = request.nextUrl.pathname.startsWith('/coach')
-  
-  if (!user && (isDashboardRoute || isAdminRoute || isClientRoute || isCoachRoute)) {
+  const isPublicRoute = 
+    request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname.startsWith('/register') ||
+    request.nextUrl.pathname.startsWith('/forgot-password') ||
+    request.nextUrl.pathname.startsWith('/reset-password') ||
+    request.nextUrl.pathname.startsWith('/auth') ||
+    request.nextUrl.pathname.startsWith('/api') ||
+    request.nextUrl.pathname === '/'
+
+  if (!user && !isPublicRoute) {
     // no user, redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
+  }
+
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isClientRoute = request.nextUrl.pathname.startsWith('/client')
+  const isCoachRoute = request.nextUrl.pathname.startsWith('/coach')
+
+  if (user && (isAdminRoute || isClientRoute || isCoachRoute)) {
+    // fetch role from profiles
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const role = profile?.role || 'client'
+
+    if (isAdminRoute && role !== 'admin') {
+      const url = request.nextUrl.clone()
+      url.pathname = role === 'trainer' ? '/coach' : '/client'
+      return NextResponse.redirect(url)
+    }
+
+    if (isCoachRoute && role !== 'trainer') {
+      const url = request.nextUrl.clone()
+      url.pathname = role === 'admin' ? '/admin' : '/client'
+      return NextResponse.redirect(url)
+    }
+
+    if (isClientRoute && role !== 'client') {
+      const url = request.nextUrl.clone()
+      url.pathname = role === 'admin' ? '/admin' : '/coach'
+      return NextResponse.redirect(url)
+    }
   }
 
   // If user is logged in and tries to access /login, redirect them somewhere (optional)

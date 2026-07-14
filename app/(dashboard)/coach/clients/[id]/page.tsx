@@ -21,9 +21,20 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     .order('starts_at', { ascending: false })
     .limit(20)
 
-  if (!workouts || workouts.length === 0) return notFound()
+  // Fetch connection to ensure authorization
+  const { data: connection } = await supabase
+    .from('trainer_clients')
+    .select('status')
+    .eq('trainer_id', user.id)
+    .eq('client_id', id)
+    .maybeSingle()
 
-  // Fetch client profile after access has been established through shared workouts.
+  const hasWorkouts = workouts && workouts.length > 0
+  const isConnected = connection && connection.status !== 'rejected'
+
+  if (!hasWorkouts && !isConnected) return notFound()
+
+  // Fetch client profile after access has been established.
   const { data: client } = await supabase
     .from('profiles')
     .select('*')
