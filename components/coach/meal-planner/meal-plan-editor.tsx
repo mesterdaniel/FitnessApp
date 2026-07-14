@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, ChangeEvent } from 'react'
 import {
   Plus, Trash2, ChevronDown, ChevronUp, Loader2, UtensilsCrossed,
   Calendar, BookmarkPlus, BookOpen, Users, Check, Pencil, X, Copy, Edit2, Apple
