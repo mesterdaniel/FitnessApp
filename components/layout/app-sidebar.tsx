@@ -11,6 +11,7 @@ import {
   Settings,
   Users,
   Ticket,
+  UtensilsCrossed,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -46,6 +47,7 @@ const getNavigation = (role: Role) => {
         { title: "Kliensek", url: "/coach/clients", icon: Users },
         { title: "Naptár / Edzések", url: "/coach/workouts", icon: Calendar },
         { title: "Bérletek", url: "/coach/passes", icon: Ticket },
+        { title: "Étrend", url: "/coach/meal-plans", icon: UtensilsCrossed },
         { title: "Üzenetek", url: "/chat", icon: MessageCircle },
         { title: "Gyakorlatok", url: "/coach/exercises", icon: Dumbbell },
         { title: "Profil", url: "/profile", icon: Settings },
@@ -56,6 +58,7 @@ const getNavigation = (role: Role) => {
         { title: "Dashboard", url: "/client", icon: Home },
         { title: "Edzések", url: "/client/workouts", icon: Dumbbell },
         { title: "Fejlődés", url: "/client/progress", icon: Activity },
+        { title: "Étrend", url: "/client/nutrition", icon: UtensilsCrossed },
         { title: "Üzenetek", url: "/chat", icon: MessageCircle },
         { title: "Profil", url: "/profile", icon: Settings },
       ]

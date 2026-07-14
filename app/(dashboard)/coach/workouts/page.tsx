@@ -39,12 +39,45 @@ export default async function CoachWorkoutsPage() {
     .eq('trainer_id', user.id)
     .order('starts_at', { ascending: false })
 
-  // Fetch clients for the dropdown
-  const { data: clients } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .eq('role', 'client')
-    .order('full_name', { ascending: true })
+  // Fetch clients from workout history
+  const { data: participantData } = await supabase
+    .from('workout_participants')
+    .select(`
+      client_id,
+      workouts!inner(trainer_id)
+    `)
+    .eq('workouts.trainer_id', user.id)
+
+  // Fetch clients from explicit connection table
+  const { data: explicitConnections } = await supabase
+    .from('trainer_clients')
+    .select('client_id')
+    .eq('trainer_id', user.id)
+    .eq('status', 'active')
+
+  const { data: inactiveConnections } = await supabase
+    .from('trainer_clients')
+    .select('client_id')
+    .eq('trainer_id', user.id)
+    .eq('status', 'rejected')
+
+  const clientIdsFromWorkouts = participantData?.map((p) => p.client_id) || []
+  const clientIdsFromConnections = explicitConnections?.map((c) => c.client_id) || []
+  const inactiveClientIds = new Set(inactiveConnections?.map((c) => c.client_id) || [])
+  
+  const allClientIds = [...new Set([...clientIdsFromWorkouts, ...clientIdsFromConnections])]
+  const clientIds = allClientIds.filter(id => !inactiveClientIds.has(id))
+
+  let clients: any[] = []
+  if (clientIds.length > 0) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', clientIds)
+      .order('full_name', { ascending: true })
+    
+    clients = data || []
+  }
 
   // Fetch coach's exercise library
   const { data: exercises } = await supabase

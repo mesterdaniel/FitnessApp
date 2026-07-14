@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { signup } from "./actions"
@@ -64,10 +65,9 @@ export default async function RegisterPage({
 
         <div className="space-y-2">
           <Label htmlFor="password" className="text-muted-foreground ml-1 text-sm">Jelszó</Label>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             required
             minLength={6}
             className="h-12 rounded-md border-none bg-input px-5 text-foreground focus-visible:ring-primary"

@@ -1,12 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dumbbell, Scale, Search, Users } from 'lucide-react'
+import { Dumbbell, Scale, Search, Users, UserMinus, Loader2 } from 'lucide-react'
 
 function getAge(birthDate?: string | null) {
   if (!birthDate) return null
@@ -23,8 +24,10 @@ function getAge(birthDate?: string | null) {
 import { AddClientDialog } from '@/components/coach/add-client-dialog'
 
 export function CoachClientsView({ clients }: { clients: any[] }) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [fitnessLevel, setFitnessLevel] = useState('all')
+  const [removingId, setRemovingId] = useState<string | null>(null)
 
   const fitnessLevels = useMemo(() => {
     return Array.from(new Set(clients.map((client) => client.fitness_level).filter(Boolean))).sort()
@@ -104,8 +107,11 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
             const age = getAge(client.birth_date)
 
             return (
-              <Link key={client.id} href={`/coach/clients/${client.id}`}>
-                <Card className="bg-card border-none shadow-md rounded-lg overflow-hidden cursor-pointer hover:bg-card/80 hover:scale-[1.01] transition-all mb-4">
+              <Card 
+                key={client.id} 
+                onClick={() => router.push(`/coach/clients/${client.id}`)}
+                className="bg-card border-none shadow-md rounded-lg overflow-hidden cursor-pointer hover:bg-card/80 hover:scale-[1.01] transition-all mb-4"
+              >
                   <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-center gap-4">
                       <Avatar className="h-12 w-12 shrink-0 border border-primary/20">
@@ -140,13 +146,49 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
                           Bérlet: {client.activePass.total_occasions - client.activePass.used_occasions} alk.
                         </div>
                       )}
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          router.push(`/coach/meal-plans?client=${client.id}`)
+                        }}
+                        className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-xs font-bold hover:bg-primary/90 transition-colors flex items-center gap-1.5"
+                      >
+                        Étrend
+                      </button>
                       <div className="bg-zinc-800 text-foreground px-3 py-1.5 rounded-full text-xs font-bold">
                         Részletek
                       </div>
+                      <button
+                        type="button"
+                        className="p-1.5 text-muted-foreground hover:bg-red-500/10 hover:text-red-400 rounded-full transition-colors disabled:opacity-50"
+                        title="Kliens eltávolítása"
+                        disabled={removingId === client.id}
+                        onClick={async (e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          if (confirm(`Biztosan eltávolítod ${client.full_name || 'őt'} a klienseid közül?`)) {
+                            setRemovingId(client.id)
+                            try {
+                              const { removeClientConnection } = await import('@/app/(dashboard)/coach/clients/actions')
+                              await removeClientConnection(client.id)
+                              router.refresh()
+                            } finally {
+                              setRemovingId(null)
+                            }
+                          }
+                        }}
+                      >
+                        {removingId === client.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <UserMinus className="w-4 h-4" />
+                        )}
+                      </button>
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
             )
           })
         ) : (

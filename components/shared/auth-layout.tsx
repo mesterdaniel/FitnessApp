@@ -6,8 +6,8 @@ import Link from 'next/link'
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-      {/* Background — dark olive matching the app theme */}
-      <div className="absolute inset-0 bg-[oklch(0.18_0.02_120)]" />
+      {/* Background — matching the main app theme */}
+      <div className="absolute inset-0 bg-background" />
 
       {/* Animated decorative shapes */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">

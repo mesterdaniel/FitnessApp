@@ -22,18 +22,45 @@ export async function searchClients(query: string) {
     return { error: 'Nincs jogosultságod.' }
   }
 
+  // Get current active clients
+  const { data: participantData } = await supabase
+    .from('workout_participants')
+    .select('client_id, workouts!inner(trainer_id)')
+    .eq('workouts.trainer_id', user.id)
+
+  const { data: explicitConnections } = await supabase
+    .from('trainer_clients')
+    .select('client_id')
+    .eq('trainer_id', user.id)
+    .eq('status', 'active')
+
+  const { data: rejectedConnections } = await supabase
+    .from('trainer_clients')
+    .select('client_id')
+    .eq('trainer_id', user.id)
+    .eq('status', 'rejected')
+
+  const clientIdsFromWorkouts = participantData?.map((p) => p.client_id) || []
+  const clientIdsFromConnections = explicitConnections?.map((c) => c.client_id) || []
+  const rejectedClientIds = new Set(rejectedConnections?.map((c) => c.client_id) || [])
+  
+  const allClientIds = [...new Set([...clientIdsFromWorkouts, ...clientIdsFromConnections])]
+  const activeClientIds = allClientIds.filter(id => !rejectedClientIds.has(id))
+
   const { data, error } = await supabase
     .from('profiles')
     .select('id, full_name')
     .eq('role', 'client')
     .ilike('full_name', `%${query}%`)
-    .limit(10)
+    .limit(50)
 
   if (error) {
     return { error: error.message }
   }
 
-  return { data }
+  const filteredData = (data || []).filter(c => !activeClientIds.includes(c.id)).slice(0, 10)
+
+  return { data: filteredData }
 }
 
 export async function addClientConnection(clientId: string) {
@@ -85,3 +112,108 @@ export async function addClientConnection(clientId: string) {
   revalidatePath('/coach/passes')
   return { success: true }
 }
+
+export async function removeClientConnection(clientId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Nincs bejelentkezve.' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'trainer' && profile?.role !== 'admin') {
+    return { error: 'Nincs jogosultságod.' }
+  }
+
+  // Check if connection already exists
+  const { data: existing } = await supabase
+    .from('trainer_clients')
+    .select('id')
+    .eq('trainer_id', user.id)
+    .eq('client_id', clientId)
+    .maybeSingle()
+
+  if (existing) {
+    const { error: updateError } = await supabase
+      .from('trainer_clients')
+      .update({ status: 'rejected' })
+      .eq('id', existing.id)
+
+    if (updateError) {
+      return { error: updateError.message }
+    }
+  } else {
+    // Insert new connection as rejected to override workout_participants
+    const { error: insertError } = await supabase
+      .from('trainer_clients')
+      .insert({
+        trainer_id: user.id,
+        client_id: clientId,
+        status: 'rejected'
+      })
+
+    if (insertError) {
+      return { error: insertError.message }
+    }
+  }
+
+  revalidatePath('/coach/clients')
+  revalidatePath('/coach/passes')
+  return { success: true }
+}
+
+export async function inviteClient(email: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Nincs bejelentkezve.' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'trainer' && profile?.role !== 'admin') {
+    return { error: 'Nincs jogosultságod.' }
+  }
+
+  const { createServiceRoleClient } = await import('@/utils/supabase/admin')
+  const adminClient = createServiceRoleClient()
+
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
+  const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/onboarding`,
+  })
+
+  if (error) {
+    if (error.status === 422 || error.message.includes('already exists') || error.message.includes('already registered')) {
+      return { error: 'Ez az e-mail cím már regisztrálva van. Kérjük, keresd meg a felhasználót név alapján!' }
+    }
+    return { error: error.message }
+  }
+
+  // Link the new user to the trainer
+  if (data?.user?.id) {
+    const { error: insertError } = await adminClient
+      .from('trainer_clients')
+      .insert({
+        trainer_id: user.id,
+        client_id: data.user.id,
+        status: 'active'
+      })
+      
+    if (insertError) {
+      console.error('Error linking invited client:', insertError)
+    }
+  }
+
+  revalidatePath('/coach/clients')
+  return { success: true }
+}
+

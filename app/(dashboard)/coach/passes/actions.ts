@@ -20,19 +20,38 @@ export async function sellPass(clientId: string, occasions: number) {
     return { error: 'Nincs jogosultságod bérletet eladni.' }
   }
 
-  // Since the UI determines clients based on workout history, we bypass the strict `trainer_clients` check here.
-  // The coach should be able to sell passes to any client they have worked with.
-
-  const { error } = await supabase
+  // Check if there is an active pass for this client
+  const { data: activePasses } = await supabase
     .from('client_passes')
-    .insert({
-      client_id: clientId,
-      total_occasions: occasions,
-      used_occasions: 0
-    })
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('is_active', true)
+    .order('purchase_date', { ascending: false })
+    .limit(1)
 
-  if (error) {
-    return { error: error.message }
+  const activePass = activePasses?.[0]
+
+  if (activePass) {
+    // Add to the existing active pass
+    const { error } = await supabase
+      .from('client_passes')
+      .update({
+        total_occasions: activePass.total_occasions + occasions
+      })
+      .eq('id', activePass.id)
+
+    if (error) return { error: error.message }
+  } else {
+    // Create a new pass
+    const { error } = await supabase
+      .from('client_passes')
+      .insert({
+        client_id: clientId,
+        total_occasions: occasions,
+        used_occasions: 0
+      })
+
+    if (error) return { error: error.message }
   }
 
   revalidatePath('/coach/passes')

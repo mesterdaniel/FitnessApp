@@ -4,6 +4,7 @@ import { Dumbbell, CalendarCheck, MessageSquare, Ticket, Zap, Trophy, Medal } fr
 import Link from 'next/link'
 import { bookWorkout } from '@/app/(dashboard)/client/workouts/actions'
 import { Button } from '@/components/ui/button'
+import { ClientOnboarding } from '@/components/client/client-onboarding'
 
 const getBadges = (count: number) => {
   const badges = []
@@ -20,6 +21,23 @@ export default async function ClientDashboardPage() {
   
   if (!user) {
     return null
+  }
+
+  // Check onboarding status
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_completed')
+    .eq('id', user.id)
+    .single()
+
+  if (profile && !profile.onboarding_completed) {
+    const { data: trainers } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('role', ['trainer', 'admin'])
+      .eq('account_status', 'active')
+    
+    return <ClientOnboarding trainers={trainers || []} />
   }
 
   // Fetch upcoming workouts via workout_participants

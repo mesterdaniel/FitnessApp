@@ -1,14 +1,20 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Loader2, AlertTriangle } from 'lucide-react'
+
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { updateProfile, updatePassword } from '@/app/(dashboard)/profile/actions'
+import { updateProfile, updatePassword, deleteAccount } from '@/app/(dashboard)/profile/actions'
 
 export function ProfileForms({ user, profile }: { user: any, profile: any }) {
+  const router = useRouter()
+  const [isDeleting, setIsDeleting] = useState(false)
   
   const handleProfileSubmit = async (formData: FormData) => {
     const res = await updateProfile(formData)
@@ -28,6 +34,20 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
       // Optional: clear the form
       const form = document.getElementById("password-form") as HTMLFormElement;
       if (form) form.reset();
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Biztosan törölni szeretnéd a fiókodat? Ez a művelet visszavonhatatlan! Minden adatod elvész.")) {
+      return;
+    }
+    setIsDeleting(true);
+    const res = await deleteAccount();
+    if (res && res.error) {
+      alert("Hiba a fiók törlése során: " + res.error);
+      setIsDeleting(false);
+    } else {
+      router.push('/login');
     }
   }
 
@@ -195,10 +215,32 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
                 />
               </div>
 
-              <Button type="submit" variant="destructive" className="w-full rounded-full h-14 font-bold text-lg mt-4">
+              <Button type="submit" variant="default" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-14 font-bold text-lg mt-4 shadow-lg shadow-primary/20">
                 Jelszó Frissítése
               </Button>
             </form>
+
+            <div className="mt-12 pt-8 border-t border-border">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div>
+                  <h4 className="text-lg font-bold text-red-500 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Veszélyes Zóna
+                  </h4>
+                  <p className="text-muted-foreground text-sm max-w-sm mt-1">A fiók törlése végleges és nem vonható vissza. Minden személyes adatod és kapcsolódó információd azonnal törlésre kerül.</p>
+                </div>
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                  className="rounded-full px-8 h-12 font-bold shadow-lg shadow-red-500/20 shrink-0"
+                >
+                  {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Fiók Törlése
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </TabsContent>

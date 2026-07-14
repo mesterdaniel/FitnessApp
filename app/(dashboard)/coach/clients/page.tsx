@@ -23,10 +23,18 @@ export default async function CoachClientsPage() {
     .eq('trainer_id', user.id)
     .eq('status', 'active')
 
+  const { data: inactiveConnections } = await supabase
+    .from('trainer_clients')
+    .select('client_id')
+    .eq('trainer_id', user.id)
+    .eq('status', 'rejected')
+
   const clientIdsFromWorkouts = participantData?.map((p) => p.client_id) || []
   const clientIdsFromConnections = explicitConnections?.map((c) => c.client_id) || []
+  const inactiveClientIds = new Set(inactiveConnections?.map((c) => c.client_id) || [])
   
-  const clientIds = [...new Set([...clientIdsFromWorkouts, ...clientIdsFromConnections])]
+  const allClientIds = [...new Set([...clientIdsFromWorkouts, ...clientIdsFromConnections])]
+  const clientIds = allClientIds.filter(id => !inactiveClientIds.has(id))
 
   let clients: any[] = []
   if (clientIds.length > 0) {

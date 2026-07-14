@@ -1,7 +1,9 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient()
@@ -81,5 +83,35 @@ export async function updatePassword(formData: FormData) {
     return { error: error.message }
   }
 
+  return { success: true }
+}
+
+export async function deleteAccount() {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Nincs bejelentkezett felhasználó.' }
+
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id)
+  
+  if (error) {
+    return { error: error.message }
+  }
+
+  await supabase.auth.signOut()
+  
+  // It's a server action, so we can't redirect directly from here if called from startTransition or hook safely without error bubbling
+  // We'll return success and handle redirect on the client side.
   return { success: true }
 }
