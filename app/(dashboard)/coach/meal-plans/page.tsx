@@ -122,33 +122,22 @@ export default async function MealPlansPage({ searchParams }: PageProps) {
       </div>
 
       {/* Client selector */}
-      {clients.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-          <p className="text-muted-foreground text-sm">
-            Még nincs aktív kliens kapcsolatod. Előbb fogadj el egy kliens-kérelmet a{' '}
-            <a href="/coach/clients" className="text-primary underline">Kliensek</a> oldalon.
-          </p>
+      {clients.length > 0 && (
+        <div className="mb-6 flex flex-col gap-2">
+          <span className="text-sm font-medium text-muted-foreground">Kiválasztott kliens:</span>
+          <ClientSelector clients={clients} selectedClientId={selectedClientId} />
         </div>
-      ) : (
-        <>
-          <div className="mb-6 flex flex-col gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Kiválasztott kliens:</span>
-            <ClientSelector clients={clients} selectedClientId={selectedClientId} />
-          </div>
-
-          {selectedClient ? (
-            <MealPlanEditor
-              key={selectedClient.id}
-              clientId={selectedClient.id}
-              clientName={selectedClient.full_name}
-              initialPlans={clientPlans}
-              initialTemplates={templates}
-              initialTrainerFoods={trainerFoods}
-              clients={clients}
-            />
-          ) : null}
-        </>
       )}
+
+      <MealPlanEditor
+        key={selectedClient?.id ?? 'no-client'}
+        clientId={selectedClient?.id}
+        clientName={selectedClient?.full_name}
+        initialPlans={clientPlans}
+        initialTemplates={templates}
+        initialTrainerFoods={trainerFoods}
+        clients={clients}
+      />
     </div>
   )
 }

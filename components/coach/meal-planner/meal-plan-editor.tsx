@@ -437,8 +437,8 @@ function PlanSelectorBar({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export interface MealPlanEditorProps {
-  clientId: string
-  clientName: string
+  clientId?: string
+  clientName?: string
   initialPlans: MealPlan[]
   initialTemplates: MealPlan[]
   initialTrainerFoods: TrainerFood[]
@@ -448,7 +448,7 @@ export interface MealPlanEditorProps {
 export function MealPlanEditor({
   clientId, clientName, initialPlans, initialTemplates, initialTrainerFoods, clients,
 }: MealPlanEditorProps) {
-  const [tab, setTab]             = useState<Tab>('clients')
+  const [tab, setTab]             = useState<Tab>(clients.length > 0 ? 'clients' : 'templates')
   const [plans, setPlans]         = useState<MealPlan[]>(initialPlans)
   const [templates, setTemplates] = useState<MealPlan[]>(initialTemplates)
   const [trainerFoods, setTrainerFoods] = useState<TrainerFood[]>(initialTrainerFoods)
@@ -650,53 +650,64 @@ export function MealPlanEditor({
       {/* ── CLIENTS TAB ── */}
       {tab === 'clients' && (
         <div className="space-y-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted-foreground shrink-0">
-              <span className="font-semibold text-foreground">{clientName}</span> étrendjei
-            </span>
-            <PlanSelectorBar
-              plans={plans}
-              activePlanId={activePlanId}
-              onSelect={setActivePlanId}
-              onNew={() => setShowCreatePlan(true)}
-            />
-          </div>
+          {clientId ? (
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground shrink-0">
+                  <span className="font-semibold text-foreground">{clientName}</span> étrendjei
+                </span>
+                <PlanSelectorBar
+                  plans={plans}
+                  activePlanId={activePlanId}
+                  onSelect={setActivePlanId}
+                  onNew={() => setShowCreatePlan(true)}
+                />
+              </div>
 
-          {showCreatePlan && (
-            <CreatePlanForm
-              clientId={clientId}
-              isTemplate={false}
-              onCreate={handlePlanCreated}
-              onCancel={() => setShowCreatePlan(false)}
-            />
-          )}
+              {showCreatePlan && (
+                <CreatePlanForm
+                  clientId={clientId}
+                  isTemplate={false}
+                  onCreate={handlePlanCreated}
+                  onCancel={() => setShowCreatePlan(false)}
+                />
+              )}
 
-          {plans.length === 0 && !showCreatePlan && (
-            <Card className="border-dashed border-border">
-              <CardContent className="flex flex-col items-center justify-center gap-3 py-12">
-                <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Még nincs étrend-terv ehhez a klienshez.</p>
-                <Button type="button" size="sm" onClick={() => setShowCreatePlan(true)}>
-                  <Plus className="mr-2 h-4 w-4" />Első terv létrehozása
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+              {plans.length === 0 && !showCreatePlan && (
+                <Card className="border-dashed border-border">
+                  <CardContent className="flex flex-col items-center justify-center gap-3 py-12">
+                    <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" />
+                    <p className="text-sm text-muted-foreground">Még nincs étrend-terv ehhez a klienshez.</p>
+                    <Button type="button" size="sm" onClick={() => setShowCreatePlan(true)}>
+                      <Plus className="mr-2 h-4 w-4" />Első terv létrehozása
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
 
-          {activePlan && (
-            <PlanEditor
-              plan={activePlan}
-              clients={clients}
-              isTemplate={false}
-              onTitleSave={handleTitleSave(activePlan.id, false)}
-              onDelete={() => handleDeletePlan(activePlan.id)}
-              onAddMealLocal={makeAddMeal(activePlan.id, false)}
-              onDeleteMeal={makeDeleteMeal(activePlan.id, false)}
-              onAddItem={makeAddItem(activePlan.id, false)}
-              onRemoveItem={makeRemoveItem(activePlan.id, false)}
-              onSaveTrainerFood={handleSaveTrainerFood}
-              onSaveAsTemplate={handleSaveAsTemplate(activePlan.id)}
-            />
+              {activePlan && (
+                <PlanEditor
+                  plan={activePlan}
+                  clients={clients}
+                  isTemplate={false}
+                  onTitleSave={handleTitleSave(activePlan.id, false)}
+                  onDelete={() => handleDeletePlan(activePlan.id)}
+                  onAddMealLocal={makeAddMeal(activePlan.id, false)}
+                  onDeleteMeal={makeDeleteMeal(activePlan.id, false)}
+                  onAddItem={makeAddItem(activePlan.id, false)}
+                  onRemoveItem={makeRemoveItem(activePlan.id, false)}
+                  onSaveTrainerFood={handleSaveTrainerFood}
+                  onSaveAsTemplate={handleSaveAsTemplate(activePlan.id)}
+                />
+              )}
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+              <p className="text-muted-foreground text-sm">
+                Még nincs aktív kliens kapcsolatod. Előbb fogadj el egy kliens-kérelmet a{' '}
+                <a href="/coach/clients" className="text-primary underline">Kliensek</a> oldalon.
+              </p>
+            </div>
           )}
         </div>
       )}
