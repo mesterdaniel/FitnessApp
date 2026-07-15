@@ -6,8 +6,10 @@ import { Calendar, Clock, MapPin, Dumbbell, UserPlus, List, CalendarDays, Filter
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import { WorkoutCalendar } from '@/components/shared/workout-calendar'
-import { bookWorkout, cancelWorkoutBooking } from '@/app/(dashboard)/client/workouts/actions'
+import { bookWorkout, cancelWorkoutBooking, requestWorkoutModification } from '@/app/(dashboard)/client/workouts/actions'
 
 export function ClientWorkoutsView({
   myWorkouts,
@@ -22,6 +24,23 @@ export function ClientWorkoutsView({
   const [selectedDayWorkouts, setSelectedDayWorkouts] = useState<any[]>([])
   const [dateFilter, setDateFilter] = useState('')
   const [quickFilter, setQuickFilter] = useState<'all' | 'today' | 'week'>('all')
+
+  const [modificationWorkout, setModificationWorkout] = useState<any>(null)
+
+  const handleModificationSubmit = async (formData: FormData) => {
+    if (!modificationWorkout) return
+    const date = formData.get('date') as string
+    const time = formData.get('time') as string
+    if (date && time) {
+      const localDate = new Date(`${date}T${time}`)
+      const res = await requestWorkoutModification(modificationWorkout.id, localDate.toISOString())
+      if (res && res.error) {
+        alert("Hiba: " + res.error)
+      } else {
+        setModificationWorkout(null)
+      }
+    }
+  }
 
   const calendarWorkouts = myWorkouts.map((workout) => ({
     id: workout.id,
@@ -106,7 +125,10 @@ export function ClientWorkoutsView({
   }
 
   const renderMyWorkoutCard = (workout: any, compact = false) => {
-    const myStatus = workout.workout_participants?.[0]?.status || 'pending'
+    const myParticipant = workout.workout_participants?.[0]
+    const myStatus = myParticipant?.status || 'pending'
+    const startsAt = new Date(workout.starts_at).getTime()
+    const isWithin24h = (startsAt - new Date().getTime()) < 24 * 60 * 60 * 1000
 
     return (
       <Card key={workout.id} className="bg-card border-none shadow-md rounded-lg overflow-hidden opacity-90">
@@ -144,15 +166,29 @@ export function ClientWorkoutsView({
               )}
               <p className="text-sm mt-2 text-muted-foreground">Edző: {workout.profiles?.full_name || 'Ismeretlen'}</p>
               {renderWorkoutPlan(workout)}
+
+              {myParticipant?.modification_status === 'pending' && (
+                <div className="mt-2 text-sm text-blue-400 bg-blue-500/10 p-2 rounded-md border border-blue-500/20">
+                  Módosítási kérelem elküldve ({new Date(myParticipant.requested_time).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}), várakozás az edző válaszára...
+                </div>
+              )}
             </div>
-            <div className="shrink-0 flex sm:flex-col justify-end">
+            <div className="shrink-0 flex sm:flex-col justify-end gap-2">
               <form action={cancelWorkoutBooking.bind(null, workout.id)}>
-                <Button type="submit" variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full font-semibold">
+                <Button type="submit" disabled={isWithin24h} variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full font-semibold w-full">
                   Lemondás
                 </Button>
               </form>
+              {workout.capacity === 1 && myParticipant?.modification_status !== 'pending' && (
+                <Button onClick={() => setModificationWorkout(workout)} variant="outline" className="rounded-full border-zinc-700 bg-transparent hover:bg-background text-xs h-9">
+                  Időpont módosítása
+                </Button>
+              )}
             </div>
           </div>
+          {isWithin24h && (
+            <p className="text-xs text-muted-foreground mt-3 text-center sm:text-right">A kezdésig kevesebb mint 24 óra van hátra, így a lemondás már nem lehetséges.</p>
+          )}
         </CardContent>
       </Card>
     )
@@ -334,6 +370,35 @@ export function ClientWorkoutsView({
           </TabsContent>
         </Tabs>
       </div>
+
+      <Dialog open={!!modificationWorkout} onOpenChange={(open) => !open && setModificationWorkout(null)}>
+        <DialogContent className="bg-card border-none text-foreground rounded-[2rem] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Időpont módosítás igénylése</DialogTitle>
+          </DialogHeader>
+          {modificationWorkout && (
+            <form action={handleModificationSubmit} className="space-y-5 pt-4">
+              <p className="text-sm text-muted-foreground">
+                Jelenlegi időpont: <strong>{new Date(modificationWorkout.starts_at).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>
+              </p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mod_date" className="text-muted-foreground ml-2">Új dátum</Label>
+                  <Input id="mod_date" name="date" type="date" required defaultValue={modificationWorkout.starts_at.split('T')[0]} className="bg-background border-none rounded-full h-12 px-4" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mod_time" className="text-muted-foreground ml-2">Új időpont</Label>
+                  <Input id="mod_time" name="time" type="time" required defaultValue={new Date(modificationWorkout.starts_at).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })} className="bg-background border-none rounded-full h-12 px-4" />
+                </div>
+              </div>
+              <DialogFooter className="mt-8 gap-2 sm:gap-0">
+                <Button type="button" variant="ghost" onClick={() => setModificationWorkout(null)} className="rounded-full hover:bg-background">Mégsem</Button>
+                <Button type="submit" className="bg-primary text-primary-foreground rounded-full font-bold px-8 shadow-lg shadow-primary/20">Kérelem elküldése</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

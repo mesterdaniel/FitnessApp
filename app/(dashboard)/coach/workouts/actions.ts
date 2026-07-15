@@ -110,13 +110,14 @@ export async function addWorkout(formData: FormData) {
   const time = formData.get('time') as string
   const location = formData.get('location') as string
   const notes = formData.get('notes') as string
+  const starts_at_iso = formData.get('starts_at_iso') as string
   const workoutExercises = parseWorkoutExercises(formData)
 
   if (!title || isNaN(duration_min) || !date || !time) {
     return { error: 'Minden kötelező mezőt ki kell tölteni' }
   }
   
-  const starts_at = new Date(`${date}T${time}`).toISOString()
+  const starts_at = starts_at_iso || new Date(`${date}T${time}`).toISOString()
 
   const { data: workout, error } = await supabase
     .from('workouts')
@@ -169,13 +170,14 @@ export async function updateWorkout(formData: FormData) {
   const time = formData.get('time') as string
   const location = formData.get('location') as string
   const notes = formData.get('notes') as string
+  const starts_at_iso = formData.get('starts_at_iso') as string
   const workoutExercises = parseWorkoutExercises(formData)
 
   if (!id || !title || isNaN(duration_min) || !date || !time) {
     return { error: 'Minden kötelező mezőt ki kell tölteni' }
   }
   
-  const starts_at = new Date(`${date}T${time}`).toISOString()
+  const starts_at = starts_at_iso || new Date(`${date}T${time}`).toISOString()
 
   const { data: existingWorkout, error: ownershipError } = await supabase
     .from('workouts')
@@ -367,5 +369,59 @@ export async function syncExternalCalendar() {
   if (error) return { error: error.message }
 
   revalidatePath('/coach/workouts')
+  return { success: true }
+}
+
+export async function resolveModification(participantId: string, status: 'approved' | 'rejected') {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  // Get participant and requested time
+  const { data: participant } = await supabase
+    .from('workout_participants')
+    .select('client_id, workout_id, requested_time, workouts(trainer_id, title)')
+    .eq('id', participantId)
+    .single()
+
+  if (!participant || !participant.workouts) return { error: 'Nem található a jelentkezés' }
+  if ((participant.workouts as any).trainer_id !== user.id) return { error: 'Nincs jogosultságod' }
+
+  const { error } = await supabase
+    .from('workout_participants')
+    .update({ 
+      modification_status: status,
+      ...(status === 'approved' ? { requested_time: null } : {})
+    })
+    .eq('id', participantId)
+
+  if (error) return { error: error.message }
+
+  // If approved, update workout starts_at
+  if (status === 'approved' && participant.requested_time) {
+    const { error: updateError } = await supabase
+      .from('workouts')
+      .update({ starts_at: participant.requested_time })
+      .eq('id', participant.workout_id)
+
+    if (updateError) return { error: updateError.message }
+  }
+
+  // Notify client
+  const title = status === 'approved' ? 'Időpont módosítás elfogadva' : 'Időpont módosítás elutasítva'
+  const message = status === 'approved' 
+    ? `Az edződ elfogadta az új időpontot a(z) "${(participant.workouts as any).title}" edzésre.`
+    : `Az edződ sajnos nem tudta elfogadni az új időpontot a(z) "${(participant.workouts as any).title}" edzésre.`
+
+  await supabase.from('notifications').insert({
+    user_id: participant.client_id,
+    title,
+    message,
+    type: 'workout_modification_resolved'
+  })
+
+  revalidatePath('/coach/workouts')
+  revalidatePath('/coach')
+  revalidatePath('/client/workouts')
   return { success: true }
 }

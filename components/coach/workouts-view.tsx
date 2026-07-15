@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, CalendarDays, Clock, MapPin, User, Trash2, Users, Check, X, List, Settings2, Link as LinkIcon, RefreshCw } from "lucide-react"
-import { addWorkout, updateWorkout, deleteWorkout, updateParticipantStatus, syncExternalCalendar } from "@/app/(dashboard)/coach/workouts/actions"
+import { Plus, CalendarDays, Clock, MapPin, User, Trash2, Users, Check, X, List, Settings2, Link as LinkIcon, RefreshCw, CalendarSync, ClipboardList } from "lucide-react"
+import { addWorkout, updateWorkout, deleteWorkout, updateParticipantStatus, syncExternalCalendar, resolveModification } from "@/app/(dashboard)/coach/workouts/actions"
 import { WorkoutCalendar } from "@/components/shared/workout-calendar"
 
 type PlanExercise = {
@@ -80,6 +80,12 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
   }
 
   const handleAddSubmit = async (formData: FormData) => {
+    const date = formData.get('date') as string
+    const time = formData.get('time') as string
+    if (date && time) {
+      const localDate = new Date(`${date}T${time}`)
+      formData.set('starts_at_iso', localDate.toISOString())
+    }
     const res = await addWorkout(formData)
     if (res && res.error) {
       alert("Hiba: " + res.error)
@@ -90,6 +96,12 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
   }
 
   const handleEditSubmit = async (formData: FormData) => {
+    const date = formData.get('date') as string
+    const time = formData.get('time') as string
+    if (date && time) {
+      const localDate = new Date(`${date}T${time}`)
+      formData.set('starts_at_iso', localDate.toISOString())
+    }
     const res = await updateWorkout(formData)
     if (res && res.error) {
       alert("Hiba: " + res.error)
@@ -102,6 +114,13 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
 
   const handleStatusChange = async (participantId: string, status: 'accepted' | 'rejected') => {
     const res = await updateParticipantStatus(participantId, status)
+    if (res && res.error) {
+      alert("Hiba: " + res.error)
+    }
+  }
+
+  const handleModificationResolve = async (participantId: string, status: 'approved' | 'rejected') => {
+    const res = await resolveModification(participantId, status)
     if (res && res.error) {
       alert("Hiba: " + res.error)
     }
@@ -170,6 +189,21 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
 
   const [selectedDayWorkouts, setSelectedDayWorkouts] = useState<any[]>([])
   const [selectedDate, setSelectedDate] = useState<string>('')
+
+  const pendingRequests = useMemo(() => {
+    const reqs: any[] = []
+    if (!workouts) return reqs
+    workouts.forEach(w => {
+      if (w.workout_participants) {
+        w.workout_participants.forEach((p: any) => {
+          if (p.status === 'pending' || p.modification_status === 'pending') {
+            reqs.push({ workout: w, participant: p })
+          }
+        })
+      }
+    })
+    return reqs
+  }, [workouts])
 
   const handleDayClick = (date: string, dayWorkouts: any[]) => {
     setSelectedDate(date)
@@ -474,6 +508,22 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
                       </Button>
                     </div>
                   )}
+                  {p.modification_status === 'pending' && p.requested_time && (
+                    <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
+                      <div className="flex items-center gap-1.5 text-blue-400">
+                        <CalendarSync className="w-4 h-4" />
+                        <span className="text-sm font-semibold">Módosítást kér: {new Date(p.requested_time).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <div className="flex gap-2 sm:ml-auto">
+                        <Button onClick={() => handleModificationResolve(p.id, 'approved')} size="sm" className="bg-blue-500 text-white hover:bg-blue-600 rounded-full font-bold h-8 px-3">
+                          Elfogadom
+                        </Button>
+                        <Button onClick={() => handleModificationResolve(p.id, 'rejected')} size="sm" variant="ghost" className="text-blue-400 hover:bg-blue-500/20 rounded-full font-bold h-8 px-3">
+                          Elutasítom
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -649,6 +699,68 @@ export function CoachWorkoutsView({ workouts, clients, exercises: coachExercises
           )}
         </DialogContent>
       </Dialog>
+
+      {pendingRequests.length > 0 && (
+        <div className="mb-6 space-y-3">
+          <h3 className="text-lg font-bold text-yellow-500 flex items-center gap-2">
+            <ClipboardList className="w-5 h-5" />
+            Figyelmet igénylő várakozó kérések
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {pendingRequests.map(({ workout, participant }) => (
+              <Card key={`${workout.id}-${participant.id}`} className="bg-card border border-yellow-500/20 shadow-sm rounded-lg overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-bold text-foreground">{workout.title}</h4>
+                      <p className="text-xs text-muted-foreground">Eredeti időpont: {new Date(workout.starts_at).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    <span className="bg-yellow-500/10 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      {participant.modification_status === 'pending' ? 'Időpont Módosítás' : 'Új Jelentkezés'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mb-3">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold">{participant.profiles?.full_name || 'Ismeretlen'}</span>
+                  </div>
+
+                  {participant.modification_status === 'pending' && participant.requested_time ? (
+                    <div className="bg-blue-500/10 p-2 rounded-md border border-blue-500/20 mb-3">
+                      <div className="flex items-center gap-1.5 text-blue-400">
+                        <CalendarSync className="w-4 h-4" />
+                        <span className="text-sm font-bold">Kért időpont: {new Date(participant.requested_time).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="flex gap-2 w-full">
+                    {participant.modification_status === 'pending' ? (
+                      <>
+                        <Button onClick={() => handleModificationResolve(participant.id, 'approved')} size="sm" className="flex-1 bg-blue-500 text-white hover:bg-blue-600 rounded-full font-bold h-9">
+                          Elfogadom
+                        </Button>
+                        <Button onClick={() => handleModificationResolve(participant.id, 'rejected')} size="sm" variant="outline" className="flex-1 text-blue-400 border-blue-500/20 hover:bg-blue-500/10 rounded-full font-bold h-9">
+                          Elutasítom
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button onClick={() => handleStatusChange(participant.id, 'accepted')} size="sm" className="flex-1 bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 rounded-full font-bold h-9">
+                          <Check className="w-4 h-4 mr-1.5" /> Elfogadom
+                        </Button>
+                        <Button onClick={() => handleStatusChange(participant.id, 'rejected')} size="sm" variant="ghost" className="flex-1 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-full font-bold h-9">
+                          <X className="w-4 h-4 mr-1.5" /> Elutasítom
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-card border-none rounded-full p-1 mb-6 sm:w-fit">

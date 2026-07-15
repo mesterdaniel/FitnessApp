@@ -142,7 +142,7 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
       markAsRead(notif.id)
     }
     // Navigate based on type
-    if (notif.type === 'workout_status' || notif.type === 'new_booking') {
+    if (notif.type === 'workout_status' || notif.type === 'new_booking' || notif.type === 'workout_modification') {
       router.push('/coach/workouts') // Adjust path as needed based on role, simpler to just go to workouts
     } else if (notif.type === 'chat_message') {
       router.push('/chat')

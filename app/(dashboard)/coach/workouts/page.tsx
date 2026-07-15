@@ -25,6 +25,8 @@ export default async function CoachWorkoutsPage() {
         id,
         client_id,
         status,
+        modification_status,
+        requested_time,
         profiles!workout_participants_client_id_fkey(id, full_name)
       ),
       workout_exercises(

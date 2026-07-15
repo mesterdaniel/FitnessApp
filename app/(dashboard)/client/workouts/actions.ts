@@ -81,7 +81,22 @@ export async function cancelWorkoutBooking(workoutId: string): Promise<void> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return
+  if (!user) return { error: 'Not authenticated' }
+
+  // Check 24h rule
+  const { data: workout } = await supabase
+    .from('workouts')
+    .select('starts_at')
+    .eq('id', workoutId)
+    .single()
+
+  if (workout) {
+    const startsAt = new Date(workout.starts_at).getTime()
+    const now = new Date().getTime()
+    if (startsAt - now < 24 * 60 * 60 * 1000) {
+      return { error: '24 órán belüli edzést nem lehet lemondani.' }
+    }
+  }
 
   const { error } = await supabase
     .from('workout_participants')
@@ -91,10 +106,45 @@ export async function cancelWorkoutBooking(workoutId: string): Promise<void> {
 
   if (error) {
     console.error(error.message)
-    return
+    return { error: error.message }
   }
 
   revalidatePath('/client/workouts')
   revalidatePath('/client')
   revalidatePath('/coach/workouts')
+  return { success: true }
+}
+
+export async function requestWorkoutModification(workoutId: string, newTimeIso: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { error } = await supabase.rpc('request_workout_modification', {
+    p_workout_id: workoutId,
+    p_requested_time: newTimeIso
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  // Notify coach
+  const { data: workout } = await supabase.from('workouts').select('trainer_id, title').eq('id', workoutId).single()
+  const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+
+  if (workout) {
+    await supabase.from('notifications').insert({
+      user_id: workout.trainer_id,
+      title: 'Időpont módosítási kérelem',
+      message: `${profile?.full_name || 'Egy kliens'} módosítást kért a(z) "${workout.title}" edzésedre.`,
+      type: 'workout_modification'
+    })
+  }
+
+  revalidatePath('/client/workouts')
+  revalidatePath('/client')
+  revalidatePath('/coach/workouts')
+  return { success: true }
 }

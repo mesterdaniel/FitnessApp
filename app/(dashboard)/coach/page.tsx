@@ -38,6 +38,7 @@ export default async function CoachDashboardPage() {
       workout_participants(
         id,
         status,
+        modification_status,
         profiles!workout_participants_client_id_fkey(full_name)
       )
     `)
@@ -51,7 +52,7 @@ export default async function CoachDashboardPage() {
     .from('workout_participants')
     .select('*, workouts!inner(trainer_id)', { count: 'exact', head: true })
     .eq('workouts.trainer_id', user.id)
-    .eq('status', 'pending')
+    .or('status.eq.pending,modification_status.eq.pending')
 
   // Unread messages count
   const { data: myConversations } = await supabase
@@ -139,7 +140,7 @@ export default async function CoachDashboardPage() {
         {upcomingWorkouts && upcomingWorkouts.length > 0 ? (
           upcomingWorkouts.map((workout: any) => {
             const accepted = workout.workout_participants?.filter((p: any) => p.status === 'accepted') || []
-            const pending = workout.workout_participants?.filter((p: any) => p.status === 'pending') || []
+            const pending = workout.workout_participants?.filter((p: any) => p.status === 'pending' || p.modification_status === 'pending') || []
             const participantNames = accepted.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ')
             
             return (

@@ -13,7 +13,7 @@ export default async function ClientWorkoutsPage() {
 
   const { data: myParticipations } = await supabase
     .from('workout_participants')
-    .select('id, workout_id, status, client_id')
+    .select('id, workout_id, status, client_id, modification_status, requested_time')
     .eq('client_id', user.id)
     .in('status', ['pending', 'accepted'])
 
@@ -46,6 +46,8 @@ export default async function ClientWorkoutsPage() {
           id: participation.id,
           client_id: participation.client_id,
           status: participation.status,
+          modification_status: participation.modification_status,
+          requested_time: participation.requested_time,
         }] : [],
       }
     })
@@ -56,7 +58,7 @@ export default async function ClientWorkoutsPage() {
     .select(`
       *,
       profiles!workouts_trainer_id_fkey(full_name),
-      workout_participants(id, status, client_id),
+      workout_participants(id, status, client_id, modification_status, requested_time),
       workout_exercises(id, exercise_name, sets, reps, weight_target, order_index)
     `)
     .eq('status', 'available')
@@ -76,6 +78,8 @@ export default async function ClientWorkoutsPage() {
         id: participation.id,
         client_id: participation.client_id,
         status: participation.status,
+        modification_status: participation.modification_status,
+        requested_time: participation.requested_time,
       }],
       }
     })
