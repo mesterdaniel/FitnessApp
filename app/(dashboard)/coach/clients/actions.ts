@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 
 export async function searchClients(query: string) {
   if (!query || query.length < 2) return { data: [] }
-  
+
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -43,7 +43,7 @@ export async function searchClients(query: string) {
   const clientIdsFromWorkouts = participantData?.map((p) => p.client_id) || []
   const clientIdsFromConnections = explicitConnections?.map((c) => c.client_id) || []
   const rejectedClientIds = new Set(rejectedConnections?.map((c) => c.client_id) || [])
-  
+
   const allClientIds = [...new Set([...clientIdsFromWorkouts, ...clientIdsFromConnections])]
   const activeClientIds = allClientIds.filter(id => !rejectedClientIds.has(id))
 
@@ -207,13 +207,60 @@ export async function inviteClient(email: string) {
         client_id: data.user.id,
         status: 'active'
       })
-      
+
     if (insertError) {
       console.error('Error linking invited client:', insertError)
     }
   }
 
   revalidatePath('/coach/clients')
+  return { success: true }
+}
+
+export async function updateClientMetrics(clientId: string, formData: FormData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Nincs bejelentkezve.' }
+
+  // Check if current user is a coach
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'trainer' && profile?.role !== 'admin') {
+    return { error: 'Nincs jogosultságod.' }
+  }
+
+  const bodyFat = formData.get('body_fat_pct') as string
+  const muscleMass = formData.get('muscle_mass_kg') as string
+  const visceralFat = formData.get('visceral_fat_level') as string
+  const calorieLimit = formData.get('calorie_limit') as string
+
+  const updates = {
+    body_fat_pct: bodyFat ? parseFloat(bodyFat) : null,
+    muscle_mass_kg: muscleMass ? parseFloat(muscleMass) : null,
+    visceral_fat_level: visceralFat ? parseFloat(visceralFat) : null,
+    calorie_limit: calorieLimit ? parseInt(calorieLimit, 10) : null
+  }
+
+  const { error } = await supabase.rpc('update_client_metrics', {
+    p_client_id: clientId,
+    p_body_fat_pct: updates.body_fat_pct,
+    p_muscle_mass_kg: updates.muscle_mass_kg,
+    p_visceral_fat_level: updates.visceral_fat_level,
+    p_calorie_limit: updates.calorie_limit
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath(`/coach/clients/${clientId}`)
+  revalidatePath('/client/progress')
+
   return { success: true }
 }
 

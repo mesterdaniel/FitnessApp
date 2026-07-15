@@ -3,6 +3,29 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+async function syncProfileWeight(userId: string) {
+  const supabase = await createClient()
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Budapest' })
+  
+  // Keresd meg a kronológiailag legfrissebb (mai vagy régebbi) mérést
+  const { data: latestLog } = await supabase
+    .from('weight_logs')
+    .select('weight_kg')
+    .eq('client_id', userId)
+    .lte('logged_at', today)
+    .order('logged_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Frissítjük a profil testsúlyt a legfrissebbre (ha nincs, null lesz)
+  const newWeight = latestLog ? latestLog.weight_kg : null
+
+  await supabase
+    .from('profiles')
+    .update({ weight_kg: newWeight })
+    .eq('id', userId)
+}
+
 export async function addExerciseLog(formData: FormData) {
   const supabase = await createClient()
 
@@ -80,12 +103,7 @@ export async function addWeightLog(formData: FormData) {
     return { error: error.message }
   }
 
-  if (logged_at <= today) {
-    await supabase
-      .from('profiles')
-      .update({ weight_kg })
-      .eq('id', user.id)
-  }
+  await syncProfileWeight(user.id)
 
   revalidatePath('/client/progress')
   revalidatePath('/profile')
@@ -129,6 +147,8 @@ export async function deleteWeightLog(id: string) {
   if (error) {
     return { error: error.message }
   }
+
+  await syncProfileWeight(user.id)
 
   revalidatePath('/client/progress')
   revalidatePath('/profile')

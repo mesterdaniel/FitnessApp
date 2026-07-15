@@ -35,7 +35,7 @@ export default async function RegisterPage({
         {success && (
           <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 p-4 text-sm text-emerald-400">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
-            <span>Sikeres regisztráció! Ellenőrizd az email fiókod a megerősítéshez. Ha nincs bekapcsolva az email megerősítés a Supabase-ben, egyből be is jelentkezhetsz.</span>
+            <span>Sikeres regisztráció! Ellenőrizd az email fiókod a megerősítéshez.</span>
           </div>
         )}
 

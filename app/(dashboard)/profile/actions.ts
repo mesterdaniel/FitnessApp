@@ -17,6 +17,7 @@ export async function updateProfile(formData: FormData) {
   const birth_date = formData.get('birth_date') as string
   const gender = formData.get('gender') as string
   const fitness_level = formData.get('fitness_level') as string
+  const bio = formData.get('bio') as string
 
   if (!full_name) {
     return { error: 'Név megadása kötelező' }
@@ -30,7 +31,8 @@ export async function updateProfile(formData: FormData) {
       height_cm: height_cm ? parseInt(height_cm, 10) : null,
       birth_date: birth_date || null,
       gender: gender || null,
-      fitness_level: fitness_level || null
+      fitness_level: fitness_level || null,
+      bio: bio || null
     })
     .eq('id', user.id)
 

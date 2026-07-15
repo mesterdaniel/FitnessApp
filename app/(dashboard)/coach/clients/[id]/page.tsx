@@ -59,6 +59,14 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     .order('logged_at', { ascending: false })
     .limit(30)
 
+  // Fetch client's metrics logs
+  const { data: metricsLogs } = await supabase
+    .from('client_metrics_logs')
+    .select('*')
+    .eq('client_id', id)
+    .order('logged_at', { ascending: false })
+    .limit(30)
+
   // Fetch active pass
   const { data: passes } = await supabase
     .from('client_passes')
@@ -75,6 +83,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         workouts={workouts || []} 
         exerciseLogs={exerciseLogs || []}
         weightLogs={weightLogs || []}
+        metricsLogs={metricsLogs || []}
         activePass={activePass}
       />
     </div>

@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateProfile, updatePassword, deleteAccount } from '@/app/(dashboard)/profile/actions'
@@ -149,6 +150,17 @@ export function ProfileForms({ user, profile }: { user: any, profile: any }) {
                     <SelectItem value="pro" className="rounded-xl">Profi / Versenyző</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bio" className="text-muted-foreground ml-2">Célok & Magamról</Label>
+                <Textarea 
+                  id="bio" 
+                  name="bio" 
+                  defaultValue={profile?.bio || ''} 
+                  placeholder="Mik a céljaid? (Pl. fogyás, izomépítés, erőnlét javítása, sérülések elkerülése...)" 
+                  className="bg-background border-none rounded-2xl min-h-[100px] px-6 py-4" 
+                />
               </div>
 
               <div className="space-y-2">

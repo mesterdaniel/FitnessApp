@@ -9,8 +9,9 @@ export default async function ClientProgressPage() {
 
   let logs: any[] = []
   let weightLogs: any[] = []
-
+  let metricsLogs: any[] = []
   let completedWorkoutsCount = 0
+  let clientProfile = null
 
   if (user) {
     const { data: exerciseLogs } = await supabase
@@ -36,6 +37,22 @@ export default async function ClientProgressPage() {
       .eq('status', 'accepted')
       
     if (count) completedWorkoutsCount = count
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('body_fat_pct, muscle_mass_kg, visceral_fat_level, calorie_limit')
+      .eq('id', user.id)
+      .single()
+
+    if (profile) clientProfile = profile
+
+    const { data: mLogs } = await supabase
+      .from('client_metrics_logs')
+      .select('*')
+      .eq('client_id', user.id)
+      .order('logged_at', { ascending: false })
+      
+    if (mLogs) metricsLogs = mLogs
   }
 
   return (
@@ -45,7 +62,7 @@ export default async function ClientProgressPage() {
         <p className="text-muted-foreground">Kövesd nyomon az eredményeidet és a testsúlyodat.</p>
       </div>
 
-      <ProgressView logs={logs} weightLogs={weightLogs} completedWorkoutsCount={completedWorkoutsCount} />
+      <ProgressView logs={logs} weightLogs={weightLogs} metricsLogs={metricsLogs} completedWorkoutsCount={completedWorkoutsCount} clientProfile={clientProfile} />
     </div>
   )
 }

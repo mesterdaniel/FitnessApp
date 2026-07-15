@@ -5,9 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, CalendarDays, Scale, Dumbbell, Trophy, TrendingUp, TrendingDown, User, Ticket, Medal } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Scale, Dumbbell, Trophy, TrendingUp, TrendingDown, User, Ticket, Medal, Target, Edit2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ProgressChart } from '@/components/client/progress-chart'
+import { SingleMetricChart } from '@/components/client/metrics-chart'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { updateClientMetrics } from '@/app/(dashboard)/coach/clients/actions'
 
 const getBadges = (count: number) => {
   const badges = []
@@ -17,11 +22,12 @@ const getBadges = (count: number) => {
   return badges.reverse()
 }
 
-export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, activePass }: {
+export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, metricsLogs = [], activePass }: {
   client: any
   workouts: any[]
   exerciseLogs: any[]
   weightLogs: any[]
+  metricsLogs?: any[]
   activePass?: any
 }) {
   const router = useRouter()
@@ -37,6 +43,19 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
   )[0] || ''
 
   const [selectedExercise, setSelectedExercise] = useState<string>(defaultTopExercise)
+  const [metricsDialogOpen, setMetricsDialogOpen] = useState(false)
+  const [metricsError, setMetricsError] = useState("")
+
+  const handleMetricsSubmit = async (formData: FormData) => {
+    setMetricsError("")
+    const result = await updateClientMetrics(client.id, formData)
+    if (result?.error) {
+      setMetricsError(result.error)
+      return
+    }
+    setMetricsDialogOpen(false)
+    router.refresh()
+  }
 
   const rawFilteredLogs = exerciseLogs
     .filter(log => log.exercise_name === selectedExercise)
@@ -57,6 +76,18 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
     date: new Date(log.logged_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }),
     weight: parseFloat(log.weight_kg),
   }))
+
+  // Metrics logs chart data
+  const metricsChartData = [...metricsLogs].reverse().map(log => ({
+    date: new Date(log.logged_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }),
+    bodyFat: log.body_fat_pct ? parseFloat(log.body_fat_pct) : null,
+    muscleMass: log.muscle_mass_kg ? parseFloat(log.muscle_mass_kg) : null,
+    visceralFat: log.visceral_fat_level ? parseFloat(log.visceral_fat_level) : null,
+  }))
+
+  const hasBodyFatData = metricsChartData.some(d => d.bodyFat !== null)
+  const hasMuscleMassData = metricsChartData.some(d => d.muscleMass !== null)
+  const hasVisceralFatData = metricsChartData.some(d => d.visceralFat !== null)
 
   const exerciseChartData = [...rawFilteredLogs]
     .reverse()
@@ -109,6 +140,78 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
           </CardContent>
         </Card>
       )}
+
+      {/* Metrics & Goals */}
+      <Card className="bg-card border-none rounded-lg shadow-md">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <CardTitle className="font-bold flex items-center gap-2 text-lg">
+            <Target className="w-5 h-5 text-primary" /> Testösszetétel és Célok
+          </CardTitle>
+          <Dialog open={metricsDialogOpen} onOpenChange={(open) => {
+            setMetricsDialogOpen(open)
+            if (!open) setMetricsError("")
+          }}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 gap-1 text-primary hover:text-primary hover:bg-primary/10 rounded-full px-3">
+                <Edit2 className="w-3.5 h-3.5" />
+                <span className="text-xs font-bold">Módosítás</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-none text-foreground rounded-[2rem] sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-xl">Mutatók és Célok beállítása</DialogTitle>
+              </DialogHeader>
+              <form action={handleMetricsSubmit} className="space-y-4 pt-4">
+                {metricsError && (
+                  <p className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-red-300">{metricsError}</p>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground ml-2">Zsír (%)</Label>
+                    <Input name="body_fat_pct" type="number" step="0.1" defaultValue={client.body_fat_pct || ''} placeholder="pl. 15.5" className="bg-background border-none rounded-full h-11 px-4" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground ml-2">Izomtömeg (kg)</Label>
+                    <Input name="muscle_mass_kg" type="number" step="0.1" defaultValue={client.muscle_mass_kg || ''} placeholder="pl. 40.2" className="bg-background border-none rounded-full h-11 px-4" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground ml-2">Zsigeri zsír</Label>
+                    <Input name="visceral_fat_level" type="number" step="0.1" defaultValue={client.visceral_fat_level || ''} placeholder="pl. 4.0" className="bg-background border-none rounded-full h-11 px-4" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground ml-2">Kalória limit</Label>
+                    <Input name="calorie_limit" type="number" defaultValue={client.calorie_limit || ''} placeholder="pl. 2500" className="bg-background border-none rounded-full h-11 px-4" />
+                  </div>
+                </div>
+                <DialogFooter className="mt-6 gap-2">
+                  <Button type="button" variant="ghost" onClick={() => setMetricsDialogOpen(false)} className="rounded-full hover:bg-background">Mégsem</Button>
+                  <Button type="submit" className="bg-primary text-primary-foreground rounded-full font-bold px-8 shadow-lg shadow-primary/20">Mentés</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+            <div className="bg-background/50 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
+              <span className="text-xs text-muted-foreground mb-1">Testzsír</span>
+              <span className="font-bold text-lg">{client.body_fat_pct ? `${client.body_fat_pct}%` : '-'}</span>
+            </div>
+            <div className="bg-background/50 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
+              <span className="text-xs text-muted-foreground mb-1">Izomtömeg</span>
+              <span className="font-bold text-lg">{client.muscle_mass_kg ? `${client.muscle_mass_kg} kg` : '-'}</span>
+            </div>
+            <div className="bg-background/50 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
+              <span className="text-xs text-muted-foreground mb-1">Zsigeri zsír</span>
+              <span className="font-bold text-lg">{client.visceral_fat_level || '-'}</span>
+            </div>
+            <div className="bg-background/50 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
+              <span className="text-xs text-muted-foreground mb-1">Kalória limit</span>
+              <span className="font-bold text-lg text-primary">{client.calorie_limit ? `${client.calorie_limit} kcal` : '-'}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -169,6 +272,37 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, a
       
       {exerciseChartData.length > 1 && (
         <ProgressChart data={exerciseChartData} exerciseName={`Fejlődés: ${selectedExercise}`} />
+      )}
+
+      {hasBodyFatData && (
+        <SingleMetricChart 
+          data={metricsChartData.filter(d => d.bodyFat !== null)} 
+          title="Testzsír alakulása" 
+          description="A testzsír százalék változása" 
+          dataKey="bodyFat" 
+          name="Testzsír (%)" 
+          color="#10b981" 
+        />
+      )}
+      {hasMuscleMassData && (
+        <SingleMetricChart 
+          data={metricsChartData.filter(d => d.muscleMass !== null)} 
+          title="Izomtömeg alakulása" 
+          description="Az izomtömeg (kg) változása" 
+          dataKey="muscleMass" 
+          name="Izomtömeg (kg)" 
+          color="#60a5fa" 
+        />
+      )}
+      {hasVisceralFatData && (
+        <SingleMetricChart 
+          data={metricsChartData.filter(d => d.visceralFat !== null)} 
+          title="Zsigeri zsír alakulása" 
+          description="A zsigeri zsír szintjének változása" 
+          dataKey="visceralFat" 
+          name="Zsigeri zsír" 
+          color="#f43f5e" 
+        />
       )}
 
       {/* Gamification Badges */}
