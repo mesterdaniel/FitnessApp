@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function bookWorkout(workoutId: string, _formData: FormData): Promise<void> {
+export async function bookWorkout(workoutId: string, _formData: FormData): Promise<any> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -49,7 +49,7 @@ export async function bookWorkout(workoutId: string, _formData: FormData): Promi
   const passId = activePass?.id || null
 
   if (!passId) {
-    return { error: 'Nincs aktív bérleted' } as any
+    return { error: 'Nincs aktív bérleted' }
   }
 
   // Create a pending participation
@@ -77,7 +77,7 @@ export async function bookWorkout(workoutId: string, _formData: FormData): Promi
   revalidatePath('/coach/workouts')
 }
 
-export async function cancelWorkoutBooking(workoutId: string): Promise<void> {
+export async function cancelWorkoutBooking(workoutId: string): Promise<any> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
