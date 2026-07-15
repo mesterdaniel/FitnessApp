@@ -86,19 +86,6 @@ export function CoachClientsView({ clients }: { clients: any[] }) {
             className="bg-card border-none rounded-full h-12 pl-11 pr-4"
           />
         </div>
-        <Select value={fitnessLevel} onValueChange={setFitnessLevel}>
-          <SelectTrigger className="bg-card border-none rounded-full h-12 px-4 w-full sm:w-56">
-            <SelectValue placeholder="Edzettségi szint" />
-          </SelectTrigger>
-          <SelectContent className="bg-card border border-zinc-800 rounded-lg shadow-xl overflow-hidden">
-            <div className="p-1">
-              <SelectItem value="all" className="rounded-xl cursor-pointer">Összes szint</SelectItem>
-              {fitnessLevels.map((level) => (
-                <SelectItem key={level} value={level} className="rounded-xl cursor-pointer">{level}</SelectItem>
-              ))}
-            </div>
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="mt-8 space-y-4">
