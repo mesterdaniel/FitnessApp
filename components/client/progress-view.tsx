@@ -386,7 +386,7 @@ export function ProgressView({ logs, weightLogs, metricsLogs = [], completedWork
                   </div>
                   <div className="bg-background/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-inner border border-primary/10">
                     <span className="text-sm font-medium text-muted-foreground mb-1">Izomtömeg</span>
-                    <span className="font-black text-3xl">{clientProfile.muscle_mass_kg ? `${clientProfile.muscle_mass_kg} kg` : '-'}</span>
+                    <span className="font-black text-3xl">{clientProfile.muscle_mass_kg ? `${clientProfile.muscle_mass_kg}%` : '-'}</span>
                   </div>
                   <div className="bg-background/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-inner border border-primary/10">
                     <span className="text-sm font-medium text-muted-foreground mb-1">Zsigeri zsír</span>
@@ -418,9 +418,9 @@ export function ProgressView({ logs, weightLogs, metricsLogs = [], completedWork
                 <SingleMetricChart 
                   data={metricsChartData.filter(d => d.muscleMass !== null)} 
                   title="Izomtömeg alakulása" 
-                  description="Az izomtömeg (kg) változása" 
+                  description="Az izomtömeg százalék változása" 
                   dataKey="muscleMass" 
-                  name="Izomtömeg (kg)" 
+                  name="Izomtömeg (%)" 
                   color="#60a5fa" 
                 />
               )}

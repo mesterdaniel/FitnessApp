@@ -264,3 +264,34 @@ export async function updateClientMetrics(clientId: string, formData: FormData) 
   return { success: true }
 }
 
+export async function deleteMetricLog(logId: string, clientId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Nincs bejelentkezve.' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'trainer' && profile?.role !== 'admin') {
+    return { error: 'Nincs jogosultságod.' }
+  }
+
+  const { error } = await supabase.rpc('delete_client_metric_log', {
+    p_log_id: logId
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath(`/coach/clients/${clientId}`)
+  revalidatePath('/client/progress')
+
+  return { success: true }
+}
+
+

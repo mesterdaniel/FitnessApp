@@ -16,6 +16,7 @@ import {
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { UnreadBadge } from "@/components/chat/unread-badge"
+import { UnreadRequestsBadge } from "@/components/coach/unread-requests-badge"
 import {
   Sidebar,
   SidebarContent,
@@ -44,6 +45,7 @@ const getNavigation = (role: Role) => {
     case "trainer":
       return [
         { title: "Dashboard", url: "/coach", icon: Home },
+        { title: "Kérelmek", url: "/coach/requests", icon: Activity },
         { title: "Kliensek", url: "/coach/clients", icon: Users },
         { title: "Naptár / Edzések", url: "/coach/workouts", icon: Calendar },
         { title: "Bérletek", url: "/coach/passes", icon: Ticket },
@@ -56,6 +58,7 @@ const getNavigation = (role: Role) => {
     default:
       return [
         { title: "Dashboard", url: "/client", icon: Home },
+        { title: "Kérelmek", url: "/client/requests", icon: Activity },
         { title: "Edzések", url: "/client/workouts", icon: Dumbbell },
         { title: "Fejlődés", url: "/client/progress", icon: Activity },
         { title: "Étrend", url: "/client/nutrition", icon: UtensilsCrossed },
@@ -116,6 +119,9 @@ export function AppSidebar({ role, userId }: { role: string, userId?: string }) 
                         <span>{item.title}</span>
                         {item.url === "/chat" && userId && (
                           <UnreadBadge userId={userId} />
+                        )}
+                        {item.url === "/coach/requests" && userId && role === "trainer" && (
+                          <UnreadRequestsBadge userId={userId} />
                         )}
                       </Link>
                     </SidebarMenuButton>

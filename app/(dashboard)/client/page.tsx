@@ -81,6 +81,16 @@ export default async function ClientDashboardPage() {
 
   const activePass = passes?.find(p => p.used_occasions < p.total_occasions) || null
 
+  // Fetch active trainer for pass display
+  const { data: activeConnection } = await supabase
+    .from('trainer_clients')
+    .select('trainer:profiles!trainer_id(full_name)')
+    .eq('client_id', user.id)
+    .eq('status', 'active')
+    .single()
+
+  const trainerName = (activeConnection?.trainer as unknown as { full_name: string })?.full_name || 'az Edződnél'
+
   // Next available workout for quick rebook
   const { data: nextAvailableWorkout } = await supabase
     .from('workouts')
@@ -162,7 +172,7 @@ export default async function ClientDashboardPage() {
               <div>
                 <h3 className="font-bold">Aktív Bérlet</h3>
                 {activePass ? (
-                  <p className="text-sm text-muted-foreground">Még {activePass.total_occasions - activePass.used_occasions} alkalom felhasználható.</p>
+                  <p className="text-sm text-muted-foreground">Még {activePass.total_occasions - activePass.used_occasions} alkalom felhasználható {trainerName}.</p>
                 ) : (
                   <p className="text-sm text-muted-foreground">Nincs aktív bérleted.</p>
                 )}

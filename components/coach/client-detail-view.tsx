@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, CalendarDays, Scale, Dumbbell, Trophy, TrendingUp, TrendingDown, User, Ticket, Medal, Target, Edit2 } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Scale, Dumbbell, Trophy, TrendingUp, TrendingDown, User, Ticket, Medal, Target, Edit2, History, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ProgressChart } from '@/components/client/progress-chart'
 import { SingleMetricChart } from '@/components/client/metrics-chart'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { updateClientMetrics } from '@/app/(dashboard)/coach/clients/actions'
+import { updateClientMetrics, deleteMetricLog } from '@/app/(dashboard)/coach/clients/actions'
 
 const getBadges = (count: number) => {
   const badges = []
@@ -44,6 +44,8 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, m
 
   const [selectedExercise, setSelectedExercise] = useState<string>(defaultTopExercise)
   const [metricsDialogOpen, setMetricsDialogOpen] = useState(false)
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [metricsError, setMetricsError] = useState("")
 
   const handleMetricsSubmit = async (formData: FormData) => {
@@ -54,6 +56,13 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, m
       return
     }
     setMetricsDialogOpen(false)
+    router.refresh()
+  }
+
+  const handleDeleteLog = async (logId: string) => {
+    setDeletingId(logId)
+    await deleteMetricLog(logId, client.id)
+    setDeletingId(null)
     router.refresh()
   }
 
@@ -147,16 +156,65 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, m
           <CardTitle className="font-bold flex items-center gap-2 text-lg">
             <Target className="w-5 h-5 text-primary" /> Testösszetétel és Célok
           </CardTitle>
-          <Dialog open={metricsDialogOpen} onOpenChange={(open) => {
-            setMetricsDialogOpen(open)
-            if (!open) setMetricsError("")
-          }}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 gap-1 text-primary hover:text-primary hover:bg-primary/10 rounded-full px-3">
-                <Edit2 className="w-3.5 h-3.5" />
-                <span className="text-xs font-bold">Módosítás</span>
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-1">
+            {metricsLogs.length > 0 && (
+              <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 gap-1 text-muted-foreground hover:text-foreground hover:bg-background rounded-full px-3">
+                    <History className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">Előzmények ({metricsLogs.length})</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-none text-foreground rounded-[2rem] sm:max-w-lg max-h-[80vh] flex flex-col">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl flex items-center gap-2">
+                      <History className="w-5 h-5 text-primary" /> Mérési előzmények
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="overflow-y-auto space-y-3 pr-1 py-2 flex-1">
+                    {metricsLogs.map((log: any) => (
+                      <div key={log.id} className="bg-background/60 p-3.5 rounded-2xl flex items-center justify-between border border-border/50">
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground">
+                            {new Date(log.logged_at).toLocaleString('hu-HU', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-foreground">
+                            {log.body_fat_pct !== null && <span>Zsír: <strong className="text-emerald-400">{log.body_fat_pct}%</strong></span>}
+                            {log.muscle_mass_kg !== null && <span>Izom: <strong className="text-blue-400">{log.muscle_mass_kg}%</strong></span>}
+                            {log.visceral_fat_level !== null && <span>Zsigeri zsír: <strong className="text-rose-400">{log.visceral_fat_level}</strong></span>}
+                            {log.calorie_limit !== null && <span>Kalória: <strong className="text-primary">{log.calorie_limit} kcal</strong></span>}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={deletingId === log.id}
+                          onClick={() => handleDeleteLog(log.id)}
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0"
+                          title="Törlés"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <DialogFooter className="pt-2">
+                    <Button variant="ghost" onClick={() => setHistoryDialogOpen(false)} className="rounded-full w-full">Bezárás</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            <Dialog open={metricsDialogOpen} onOpenChange={(open) => {
+              setMetricsDialogOpen(open)
+              if (!open) setMetricsError("")
+            }}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 gap-1 text-primary hover:text-primary hover:bg-primary/10 rounded-full px-3">
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span className="text-xs font-bold">Módosítás</span>
+                </Button>
+              </DialogTrigger>
             <DialogContent className="bg-card border-none text-foreground rounded-[2rem] sm:max-w-md">
               <DialogHeader>
                 <DialogTitle className="text-xl">Mutatók és Célok beállítása</DialogTitle>
@@ -171,8 +229,8 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, m
                     <Input name="body_fat_pct" type="number" step="0.1" defaultValue={client.body_fat_pct || ''} placeholder="pl. 15.5" className="bg-background border-none rounded-full h-11 px-4" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-muted-foreground ml-2">Izomtömeg (kg)</Label>
-                    <Input name="muscle_mass_kg" type="number" step="0.1" defaultValue={client.muscle_mass_kg || ''} placeholder="pl. 40.2" className="bg-background border-none rounded-full h-11 px-4" />
+                    <Label className="text-muted-foreground ml-2">Izomtömeg (%)</Label>
+                    <Input name="muscle_mass_kg" type="number" step="0.1" defaultValue={client.muscle_mass_kg || ''} placeholder="pl. 42.5" className="bg-background border-none rounded-full h-11 px-4" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-muted-foreground ml-2">Zsigeri zsír</Label>
@@ -190,6 +248,7 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, m
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
@@ -199,7 +258,7 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, m
             </div>
             <div className="bg-background/50 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
               <span className="text-xs text-muted-foreground mb-1">Izomtömeg</span>
-              <span className="font-bold text-lg">{client.muscle_mass_kg ? `${client.muscle_mass_kg} kg` : '-'}</span>
+              <span className="font-bold text-lg">{client.muscle_mass_kg ? `${client.muscle_mass_kg}%` : '-'}</span>
             </div>
             <div className="bg-background/50 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
               <span className="text-xs text-muted-foreground mb-1">Zsigeri zsír</span>
@@ -288,9 +347,9 @@ export function ClientDetailView({ client, workouts, exerciseLogs, weightLogs, m
         <SingleMetricChart 
           data={metricsChartData.filter(d => d.muscleMass !== null)} 
           title="Izomtömeg alakulása" 
-          description="Az izomtömeg (kg) változása" 
+          description="Az izomtömeg százalék változása" 
           dataKey="muscleMass" 
-          name="Izomtömeg (kg)" 
+          name="Izomtömeg (%)" 
           color="#60a5fa" 
         />
       )}

@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, CalendarDays, ClipboardList, MessageCircle } from 'lucide-react'
+import { Users, CalendarDays, ClipboardList, MessageCircle, Activity } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function CoachDashboardPage() {
@@ -72,6 +72,13 @@ export default async function CoachDashboardPage() {
     unreadCount = count || 0
   }
 
+  // Count pending service requests
+  const { count: pendingRequestsCount } = await supabase
+    .from('service_requests')
+    .select('*', { count: 'exact', head: true })
+    .eq('trainer_id', user.id)
+    .eq('status', 'pending')
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24">
       <div>
@@ -79,9 +86,9 @@ export default async function CoachDashboardPage() {
         <p className="text-muted-foreground">Kezeld az ügyfeleidet és a közelgő edzéseket egy helyen.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <Link href="/coach/workouts">
-          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer neon-glow">
+          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer neon-glow h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Közelgő edzések</CardTitle>
               <CalendarDays className="h-4 w-4 text-primary" />
@@ -90,46 +97,54 @@ export default async function CoachDashboardPage() {
               <div className="break-words text-2xl font-bold text-foreground">
                 {upcomingWorkouts?.length || 0}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Betáblázva az elkövetkező napokra</p>
             </CardContent>
           </Card>
         </Link>
 
-        <Link href="/coach/clients">
-          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+        <Link href="/coach/requests">
+          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Ügyfelek száma</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Új Kérelmek</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="break-words text-2xl font-bold text-foreground">{clientsCount || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Összes regisztrált kliens</p>
+              <div className="break-words text-2xl font-bold text-blue-500">{pendingRequestsCount || 0}</div>
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/coach/workouts">
-          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Várakozó kérések</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Edzésre jelentkezők</CardTitle>
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="break-words text-2xl font-bold text-yellow-500">{pendingCount || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Elfogadásra váró jelentkezők</p>
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/chat">
-          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Új üzenetek</CardTitle>
               <MessageCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="break-words text-2xl font-bold text-red-400">{unreadCount}</div>
-              <p className="text-xs text-muted-foreground mt-1">Olvasatlan üzenet</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/coach/clients">
+          <Card className="bg-card border-none rounded-lg shadow-md hover:scale-[1.02] transition-transform cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Ügyfelek</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="break-words text-2xl font-bold text-foreground">{clientsCount || 0}</div>
             </CardContent>
           </Card>
         </Link>
