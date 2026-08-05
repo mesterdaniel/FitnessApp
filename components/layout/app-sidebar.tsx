@@ -12,6 +12,7 @@ import {
   Users,
   Ticket,
   UtensilsCrossed,
+  Briefcase,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -52,6 +53,7 @@ const getNavigation = (role: Role) => {
         { title: "Étrend", url: "/coach/meal-plans", icon: UtensilsCrossed },
         { title: "Üzenetek", url: "/chat", icon: MessageCircle },
         { title: "Gyakorlatok", url: "/coach/exercises", icon: Dumbbell },
+        { title: "Portfólióm", url: "/coach/portfolio", icon: Briefcase },
         { title: "Profil", url: "/profile", icon: Settings },
       ]
     case "client":
@@ -59,6 +61,7 @@ const getNavigation = (role: Role) => {
       return [
         { title: "Dashboard", url: "/client", icon: Home },
         { title: "Kérelmek", url: "/client/requests", icon: Activity },
+        { title: "Edzők", url: "/client/coaches", icon: Users },
         { title: "Edzések", url: "/client/workouts", icon: Dumbbell },
         { title: "Fejlődés", url: "/client/progress", icon: Activity },
         { title: "Étrend", url: "/client/nutrition", icon: UtensilsCrossed },

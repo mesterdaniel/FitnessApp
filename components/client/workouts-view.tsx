@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Calendar, Clock, MapPin, Dumbbell, UserPlus, List, CalendarDays, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,6 +25,19 @@ export function ClientWorkoutsView({
   const [selectedDayWorkouts, setSelectedDayWorkouts] = useState<any[]>([])
   const [dateFilter, setDateFilter] = useState('')
   const [quickFilter, setQuickFilter] = useState<'all' | 'today' | 'week'>('all')
+  const [coachFilter, setCoachFilter] = useState<string | null>(null)
+
+  const uniqueTrainers = useMemo(() => {
+    const trainersMap = new Map<string, any>()
+    const addTrainer = (w: any) => {
+      if (w.profiles && w.profiles.id) {
+        trainersMap.set(w.profiles.id, w.profiles)
+      }
+    }
+    availableWorkouts.forEach(addTrainer)
+    myWorkouts.forEach(addTrainer)
+    return Array.from(trainersMap.values())
+  }, [availableWorkouts, myWorkouts])
 
   const [modificationWorkout, setModificationWorkout] = useState<any>(null)
 
@@ -62,6 +76,10 @@ export function ClientWorkoutsView({
   const filteredAvailableWorkouts = useMemo(() => {
     let filtered = availableWorkouts
 
+    if (coachFilter) {
+      filtered = filtered.filter(w => w.profiles?.id === coachFilter)
+    }
+
     if (quickFilter === 'today') {
       const today = new Date().toISOString().split('T')[0]
       filtered = filtered.filter(w => w.starts_at.split('T')[0] === today)
@@ -80,7 +98,12 @@ export function ClientWorkoutsView({
     }
 
     return filtered
-  }, [availableWorkouts, quickFilter, dateFilter])
+  }, [availableWorkouts, quickFilter, dateFilter, coachFilter])
+
+  const filteredMyWorkouts = useMemo(() => {
+    if (!coachFilter) return myWorkouts
+    return myWorkouts.filter(w => w.profiles?.id === coachFilter)
+  }, [myWorkouts, coachFilter])
 
   const renderWorkoutPlan = (workout: any) => {
     if (!workout.workout_exercises || workout.workout_exercises.length === 0) return null
@@ -201,6 +224,47 @@ export function ClientWorkoutsView({
           <h1 className="text-3xl font-bold tracking-tight">Szabad Időpontok</h1>
           <p className="text-muted-foreground">Jelentkezz az edződ által kiírt szabad edzésekre.</p>
         </div>
+
+        {/* Coach filter controls */}
+        {uniqueTrainers.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold mb-3 text-muted-foreground ml-1">Edző választása</h3>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setCoachFilter(null)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all border ${
+                  coachFilter === null 
+                    ? 'border-primary bg-primary/10 text-primary font-bold shadow-sm' 
+                    : 'border-zinc-800 bg-card hover:border-zinc-700 hover:bg-zinc-900 text-muted-foreground'
+                }`}
+              >
+                <span>Összes edző</span>
+              </button>
+              
+              {uniqueTrainers.map(trainer => (
+                <button
+                  key={trainer.id}
+                  type="button"
+                  onClick={() => setCoachFilter(trainer.id)}
+                  className={`flex items-center gap-3 px-4 py-2 rounded-full transition-all border ${
+                    coachFilter === trainer.id 
+                      ? 'border-primary bg-primary/10 text-primary font-bold shadow-sm' 
+                      : 'border-zinc-800 bg-card hover:border-zinc-700 hover:bg-zinc-900 text-muted-foreground'
+                  }`}
+                >
+                  <Avatar className="w-6 h-6 border border-zinc-800">
+                    <AvatarImage src={trainer.avatar_url || ''} />
+                    <AvatarFallback className="text-[10px] bg-zinc-800 text-zinc-400">
+                      {trainer.full_name?.charAt(0) || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{trainer.full_name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Date filter controls */}
         <div className="mb-6 space-y-3">
@@ -338,10 +402,10 @@ export function ClientWorkoutsView({
 
           <TabsContent value="list">
             <div className="space-y-4">
-              {myWorkouts.length > 0 ? (
-                myWorkouts.map((workout) => renderMyWorkoutCard(workout))
+              {filteredMyWorkouts.length > 0 ? (
+                filteredMyWorkouts.map((workout) => renderMyWorkoutCard(workout))
               ) : (
-                <p className="text-muted-foreground italic ml-2">Nincs még lefoglalt edzésed.</p>
+                <p className="text-muted-foreground italic ml-2">Nincs még lefoglalt edzésed{coachFilter ? ' ettől az edzőtől' : ''}.</p>
               )}
             </div>
           </TabsContent>

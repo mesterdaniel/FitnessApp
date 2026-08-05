@@ -27,7 +27,7 @@ export default async function ClientWorkoutsPage() {
         .from('workouts')
         .select(`
           *,
-          profiles!workouts_trainer_id_fkey(full_name),
+          profiles!workouts_trainer_id_fkey(id, full_name, avatar_url),
           workout_exercises(
             id, exercise_name, sets, reps, weight_target, order_index
           )
@@ -57,7 +57,7 @@ export default async function ClientWorkoutsPage() {
     .from('workouts')
     .select(`
       *,
-      profiles!workouts_trainer_id_fkey(full_name),
+      profiles!workouts_trainer_id_fkey(id, full_name, avatar_url),
       workout_participants(id, status, client_id, modification_status, requested_time),
       workout_exercises(id, exercise_name, sets, reps, weight_target, order_index)
     `)
