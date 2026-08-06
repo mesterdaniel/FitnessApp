@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { upsertPortfolio } from '@/app/(dashboard)/coach/portfolio/actions'
 import { Plus, X, Upload } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function PortfolioForm({ initialData }: { initialData: any }) {
   const [loading, setLoading] = useState(false)
@@ -50,9 +51,9 @@ export function PortfolioForm({ initialData }: { initialData: any }) {
     const result = await upsertPortfolio(formData)
     
     if (result?.error) {
-      alert("Hiba történt: " + result.error)
+      toast.error(result.error)
     } else {
-      alert("Portfólió sikeresen frissítve!")
+      toast.success("Portfólió sikeresen frissítve!")
     }
     setLoading(false)
   }

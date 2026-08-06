@@ -29,6 +29,7 @@ export const viewport = {
 
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { PwaRegistrar } from "@/components/pwa-registrar"
+import { Toaster } from "@/components/ui/sonner"
 
 export default function RootLayout({
   children,
@@ -45,6 +46,7 @@ export default function RootLayout({
         <TooltipProvider>
           {children}
         </TooltipProvider>
+        <Toaster />
       </body>
     </html>
   );

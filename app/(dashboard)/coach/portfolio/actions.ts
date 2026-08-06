@@ -9,19 +9,45 @@ export async function upsertPortfolio(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Nincs bejelentkezve.' }
 
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'trainer' && profile?.role !== 'admin') {
+    return { error: 'Nincs jogosultságod portfólió szerkesztéséhez.' }
+  }
+
   const introduction = formData.get('introduction') as string
   const services = formData.get('services') as string
   const specialties = formData.getAll('specialties') as string[]
   const phone_number = formData.get('phone_number') as string
   const email = formData.get('email') as string
-  const instagram_url = formData.get('instagram_url') as string
-  const facebook_url = formData.get('facebook_url') as string
+  let instagram_url = formData.get('instagram_url') as string
+  let facebook_url = formData.get('facebook_url') as string
+  
+  if (instagram_url && !/^https?:\/\//i.test(instagram_url)) {
+    instagram_url = 'https://' + instagram_url
+  }
+  if (facebook_url && !/^https?:\/\//i.test(facebook_url)) {
+    facebook_url = 'https://' + facebook_url
+  }
   
   // Image handling
   const imageFile = formData.get('portfolio_image') as File
   let portfolio_image_url = formData.get('existing_image_url') as string
 
   if (imageFile && imageFile.size > 0) {
+    if (imageFile.size > 5 * 1024 * 1024) {
+      return { error: 'A kép mérete nem haladhatja meg az 5 MB-ot.' }
+    }
+    if (!imageFile.type.startsWith('image/')) {
+      return { error: 'Csak képformátum tölthető fel.' }
+    }
+
+    if (portfolio_image_url && portfolio_image_url.includes('/storage/v1/object/public/portfolios/')) {
+      const oldPathMatch = portfolio_image_url.match(/\/portfolios\/(.*)$/);
+      if (oldPathMatch && oldPathMatch[1]) {
+        await supabase.storage.from('portfolios').remove([oldPathMatch[1]]);
+      }
+    }
+
     const fileExt = imageFile.name.split('.').pop()
     const fileName = `${user.id}-${Math.random()}.${fileExt}`
     const filePath = `${user.id}/${fileName}`

@@ -264,6 +264,9 @@ export async function updateParticipantStatus(participantId: string, status: 'ac
     .eq('id', participantId)
 
   if (error) {
+    if (error.message.includes('Workout capacity reached') || error.code === 'P0001') {
+       return { error: 'A létszámkorlát betelt! Kérlek növeld a kapacitást az edzés szerkesztésénél.' }
+    }
     return { error: error.message }
   }
 

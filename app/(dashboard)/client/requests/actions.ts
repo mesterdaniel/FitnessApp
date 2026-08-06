@@ -35,6 +35,15 @@ export async function createServiceRequest(formData: FormData) {
     return { error: error.message }
   }
 
+  // Create notification for the trainer
+  await supabase.from('notifications').insert({
+    user_id: trainerId,
+    created_by: user.id,
+    title: 'Új szolgáltatás igénylés',
+    message: 'Egy kliens új kérelmet küldött neked.',
+    type: 'new_request'
+  })
+
   revalidatePath('/client/requests')
   return { success: true }
 }

@@ -48,6 +48,18 @@ export async function updateServiceRequestStatus(
     return { error: error.message }
   }
 
+  // Create notification for the client
+  if (existing?.client_id) {
+    const statusText = status === 'accepted' ? 'elfogadta' : status === 'rejected' ? 'elutasította' : 'teljesítette'
+    await supabase.from('notifications').insert({
+      user_id: existing.client_id,
+      created_by: user.id,
+      title: 'Kérelem státusza frissült',
+      message: `Az edző ${statusText} a kérelmedet.`,
+      type: 'request_update'
+    })
+  }
+
   // If accepted, add client to coach's active clients if not already
   if (status === 'accepted' && existing?.client_id) {
     const clientId = existing.client_id

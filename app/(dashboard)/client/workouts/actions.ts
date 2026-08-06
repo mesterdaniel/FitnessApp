@@ -27,14 +27,7 @@ export async function bookWorkout(workoutId: string, _formData: FormData): Promi
 
   if (existingParticipation) return
 
-  // Check current participants count
-  const { count } = await supabase
-    .from('workout_participants')
-    .select('*', { count: 'exact', head: true })
-    .eq('workout_id', workoutId)
-    .in('status', ['accepted', 'pending'])
 
-  if (count !== null && count >= workout.capacity) return
 
   // Find an active pass
   const { data: passes, error: passesError } = await supabase

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function completeOnboarding(trainerId: string) {
@@ -9,8 +10,9 @@ export async function completeOnboarding(trainerId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Nincs bejelentkezve.' }
 
-  // 1. Create active connection with trainer
-  const { error: connectionError } = await supabase
+  // 1. Create active connection with trainer using admin client (bypasses RLS)
+  const adminClient = createServiceRoleClient()
+  const { error: connectionError } = await adminClient
     .from('trainer_clients')
     .insert({
       trainer_id: trainerId,
@@ -20,19 +22,6 @@ export async function completeOnboarding(trainerId: string) {
 
   if (connectionError && connectionError.code !== '23505') { // Ignore unique violation if exists
     return { error: 'Hiba a kapcsolat létrehozásakor: ' + connectionError.message }
-  }
-
-  // 2. Grant a 1-occasion starter pass
-  const { error: passError } = await supabase
-    .from('client_passes')
-    .insert({
-      client_id: user.id,
-      total_occasions: 1,
-      used_occasions: 0
-    })
-
-  if (passError) {
-    return { error: 'Hiba a bérlet kiállításakor: ' + passError.message }
   }
 
   // 3. Mark onboarding as completed

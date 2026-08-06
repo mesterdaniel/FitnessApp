@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateServiceRequestStatus } from "@/app/(dashboard)/coach/requests/actions"
+import { toast } from "sonner"
 
 const requestTypes = {
   assessment: { label: "Állapotfelmérés", icon: Activity },
@@ -189,9 +190,9 @@ export function CoachRequestsView({ initialRequests }: { initialRequests: any[] 
     const result = await updateServiceRequestStatus(id, status, notes[id] || "")
     
     if (result.error) {
-      alert("Hiba: " + result.error)
+      toast.error(result.error)
     } else {
-      alert("Sikeres frissítés: A kérelem státusza frissítve.")
+      toast.success("A kérelem státusza frissítve lett.")
       router.refresh()
     }
     setIsSubmitting(null)

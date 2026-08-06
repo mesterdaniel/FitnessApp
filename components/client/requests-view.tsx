@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { createServiceRequest, cancelServiceRequest } from "@/app/(dashboard)/client/requests/actions"
+import { toast } from "sonner"
 
 const requestTypes = {
   assessment: { label: "Állapotfelmérés", icon: Activity },
@@ -51,9 +52,9 @@ export function RequestsView({ initialRequests, trainers }: { initialRequests: a
     const result = await createServiceRequest(formData)
     
     if (result.error) {
-      alert("Hiba: " + result.error)
+      toast.error(result.error)
     } else {
-      alert("Sikeres küldés: Az igénylést továbbítottuk az edződnek.")
+      toast.success("Az igénylést továbbítottuk az edződnek.")
       const form = document.getElementById("request-form") as HTMLFormElement
       form?.reset()
       setSelectedType("assessment")
@@ -67,9 +68,9 @@ export function RequestsView({ initialRequests, trainers }: { initialRequests: a
 
     const result = await cancelServiceRequest(id)
     if (result.error) {
-      alert("Hiba: " + result.error)
+      toast.error(result.error)
     } else {
-      alert("Sikeres törlés: A kérelem törölve lett.")
+      toast.success("A kérelem törölve lett.")
       router.refresh()
     }
   }
