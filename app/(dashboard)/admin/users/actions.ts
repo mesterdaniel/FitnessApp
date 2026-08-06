@@ -7,7 +7,7 @@ import { isAccountStatus, isUserRole, type AccountStatus, type UserRole } from '
 async function writeAuditLog(
   supabase: Awaited<ReturnType<typeof requireAdminAction>>['supabase'],
   actorId: string,
-  targetUserId: string,
+  targetUserId: string | null,
   action: string,
   metadata: Record<string, unknown>
 ) {
@@ -110,7 +110,7 @@ export async function deleteUser(userId: string) {
     return { error: error.message }
   }
 
-  await writeAuditLog(supabase, user.id, userId, 'user.deleted', {})
+  await writeAuditLog(supabase, user.id, null, 'user.deleted', { deleted_user_id: userId })
 
   revalidatePath('/admin')
   revalidatePath('/admin/users')
